@@ -72,7 +72,7 @@ export default function RootLayout({
       lang="en"
       className={`${poppins.variable} ${cormorant.variable} ${caveat.variable}`}
     >
-      <body className="bg-cream-100 text-stone-800 antialiased">
+      <body className="bg-cream-100 text-ink antialiased">
         <BranchDecorations />
         {children}
       </body>

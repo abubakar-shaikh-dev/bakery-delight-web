@@ -26,7 +26,7 @@ export default function CustomCakes() {
 
         <div className="grid items-center gap-12 px-5 py-14 md:px-10 lg:grid-cols-[1.15fr_1fr] lg:px-[8.5rem] lg:py-16">
           <div>
-            <h2 className="font-display text-4xl font-bold leading-[1.15] text-cocoa-2 md:text-[38px]">
+            <h2 className="font-display text-4xl font-bold leading-[1.15] text-cocoa-2 md:text-[40px]">
               Custom Cakes
               <br />
               for Your Special Moments

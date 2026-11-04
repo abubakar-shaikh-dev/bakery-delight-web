@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { safeJson } from "@/lib/api";
 import { connectDB } from "@/lib/db";
 import GalleryImage from "@/models/GalleryImage";
 
-export async function GET() {
+async function GET_() {
   const denied = await requireAdmin();
   if (denied) return denied;
 
@@ -14,7 +15,7 @@ export async function GET() {
   return NextResponse.json({ images });
 }
 
-export async function POST(req: NextRequest) {
+async function POST_(req: NextRequest) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!conn) return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
 
   const body = await req.json().catch(() => null);
-  if (typeof body?.url !== "string" || !body.url)
+  if (typeof body?.url !== "string" || !/^(https?:\/\/|\/)/.test(body.url) || body.url.length > 500)
     return NextResponse.json({ error: "An uploaded image is required." }, { status: 400 });
 
   const image = await GalleryImage.create({
@@ -32,4 +33,12 @@ export async function POST(req: NextRequest) {
   });
 
   return NextResponse.json({ image }, { status: 201 });
+}
+
+export function GET() {
+  return safeJson(() => GET_());
+}
+
+export function POST(req: NextRequest) {
+  return safeJson(() => POST_(req));
 }

@@ -8,7 +8,8 @@
 import {
   ArrowRight as LucideArrowRight,
   ArrowUp as LucideArrowUp,
-  ChevronDown as LucideChevronDown,
+  ChevronRight as LucideChevronRight,
+  Clock as LucideClock,
   Gift as LucideGift,
   Heart as LucideHeart,
   House as LucideHouse,
@@ -76,8 +77,12 @@ export function IconQuote({ className = "h-9 w-9" }: IconProps) {
   return <LucideQuote className={className} fill="currentColor" strokeWidth={0} />;
 }
 
-export function IconChevronDown({ className = "h-3 w-3" }: IconProps) {
-  return <LucideChevronDown className={className} strokeWidth={1.8} />;
+export function IconChevronRight({ className = "h-3.5 w-3.5" }: IconProps) {
+  return <LucideChevronRight className={className} strokeWidth={2} />;
+}
+
+export function IconClock({ className = "h-4 w-4" }: IconProps) {
+  return <LucideClock className={className} strokeWidth={1.8} {...base} />;
 }
 
 /* ---------- Bespoke icons (no lucide equivalent) ---------- */

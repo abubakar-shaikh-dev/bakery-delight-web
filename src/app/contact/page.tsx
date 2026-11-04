@@ -14,7 +14,7 @@ import {
   IconYoutube,
 } from "@/components/icons";
 import { getSettings, SettingsData } from "@/lib/site-data";
-import { Clock } from "lucide-react";
+import { IconClock } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Contact Us — Bakery Delight",
@@ -27,9 +27,11 @@ export const dynamic = "force-dynamic";
 export default async function ContactPage() {
   const settings: SettingsData = await getSettings();
   const waText = encodeURIComponent(
-    "Hi Bakery Delight! I'd like to ask about ordering a cake.",
+    "Hi Bakery Delight, I'd like to ask about ordering a cake.",
   );
-  const waLink = `https://wa.me/${settings.whatsappDigits || "919876543210"}?text=${waText}`;
+  const waLink = settings.whatsappDigits
+    ? `https://wa.me/${settings.whatsappDigits}?text=${waText}`
+    : "";
 
   const socials = [
     { label: "Instagram", href: settings.socials.instagram, icon: <IconInstagram /> },
@@ -55,28 +57,30 @@ export default async function ContactPage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:gap-12">
             {/* info cards */}
             <div className="flex flex-col gap-5">
-              {/* WhatsApp — hero card */}
-              <a
-                href={waLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-5 rounded-2xl bg-wa p-6 text-white shadow-md transition-colors hover:bg-wa-deep"
-              >
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white/15">
-                  <IconWhatsApp className="h-7 w-7" />
-                </span>
-                <span>
-                  <span className="block font-display text-2xl font-bold">
-                    Chat on WhatsApp
+              {/* WhatsApp — hero card (only when configured) */}
+              {waLink && (
+                <a
+                  href={waLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-5 rounded-2xl bg-wa p-6 text-white shadow-md transition-colors hover:bg-wa-deep"
+                >
+                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white/15">
+                    <IconWhatsApp className="h-7 w-7" />
                   </span>
-                  <span className="block text-[13px] text-white/80">
-                    Fastest way to order
+                  <span>
+                    <span className="block font-display text-2xl font-bold">
+                      Chat on WhatsApp
+                    </span>
+                    <span className="block text-[13px] text-white/80">
+                      Fastest way to order
+                    </span>
+                    <span className="mt-1 block text-[14px] font-semibold tabular-nums">
+                      {settings.whatsappNumber}
+                    </span>
                   </span>
-                  <span className="mt-1 block text-[14px] font-semibold tabular-nums">
-                    {settings.whatsappNumber}
-                  </span>
-                </span>
-              </a>
+                </a>
+              )}
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <a
@@ -118,8 +122,8 @@ export default async function ContactPage() {
                   <p className="text-[13px] font-semibold text-ink">Find us</p>
                   <p className="mt-0.5 text-[13px] text-stone-600">{settings.address}</p>
                   <p className="mt-3 flex items-center gap-2 text-[13px] text-stone-600">
-                    <Clock className="h-4 w-4 text-berry-deep" strokeWidth={1.8} />
-                    Orders open daily, 9 AM – 8 PM
+                    <IconClock className="h-4 w-4 text-berry-deep" strokeWidth={1.8} />
+                    Message us any day — we reply as soon as we&rsquo;re out of the kitchen
                   </p>
                 </div>
               </div>

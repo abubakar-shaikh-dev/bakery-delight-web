@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clientIp, rateLimit, safeJson } from "@/lib/api";
 import { connectDB } from "@/lib/db";
 import Review from "@/models/Review";
 import { getReviewsPage } from "@/lib/site-data";
@@ -7,7 +8,7 @@ import { getReviewsPage } from "@/lib/site-data";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const limit = Math.min(24, Math.max(1, Number(searchParams.get("limit")) || 9));
-  const offset = Math.max(0, Number(searchParams.get("offset")) || 0);
+  const offset = Math.min(10000, Math.max(0, Number(searchParams.get("offset")) || 0));
 
   const page = await getReviewsPage(limit, offset);
   return NextResponse.json(page);
@@ -16,7 +17,15 @@ export async function GET(req: NextRequest) {
 const PLATFORMS = ["Instagram", "WhatsApp", "Facebook", "Google", "Other"];
 
 /** Public: submit a review (lands unapproved for admin moderation). */
-export async function POST(req: NextRequest) {
+async function POST_(req: NextRequest) {
+  // Spam guard: 5 submissions per IP per hour, per instance.
+  if (!rateLimit(`review:${clientIp(req)}`, 5, 60 * 60_000)) {
+    return NextResponse.json(
+      { error: "Too many reviews submitted. Please try again later." },
+      { status: 429 },
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   const rating = Number(body?.rating);
@@ -27,7 +36,7 @@ export async function POST(req: NextRequest) {
       : null;
   const socialUrl =
     typeof body?.socialUrl === "string" && /^https?:\/\/.+/i.test(body.socialUrl.trim())
-      ? body.socialUrl.trim()
+      ? body.socialUrl.trim().slice(0, 300)
       : null;
 
   if (!name || name.length > 60)
@@ -49,4 +58,8 @@ export async function POST(req: NextRequest) {
 
   await Review.create({ name, rating, text, socialPlatform, socialUrl, approved: false });
   return NextResponse.json({ ok: true });
+}
+
+export function POST(req: NextRequest) {
+  return safeJson(() => POST_(req));
 }

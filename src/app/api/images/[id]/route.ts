@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isObjectId, safeJson } from "@/lib/api";
 import { connectDB } from "@/lib/db";
 import UploadedImage from "@/models/UploadedImage";
 
 type Params = { params: Promise<{ id: string }> };
 
 /** Serves images stored in MongoDB (fallback when Cloudinary is unavailable). */
-export async function GET(_req: NextRequest, { params }: Params) {
+async function GET_(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  if (!/^[a-f0-9]{24}$/i.test(id))
+  if (!isObjectId(id))
     return NextResponse.json({ error: "Invalid image id" }, { status: 400 });
 
   const conn = await connectDB();
@@ -22,4 +23,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       "Cache-Control": "public, max-age=31536000, immutable",
     },
   });
+}
+
+export function GET(req: NextRequest, ctx: Params) {
+  return safeJson(() => GET_(req, ctx));
 }

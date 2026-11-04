@@ -122,7 +122,7 @@ export default function FullscreenMenu() {
         aria-controls="site-menu"
         aria-label="Open menu"
         onClick={() => setOpen(true)}
-        className="flex h-11 w-11 items-center justify-center rounded-full text-stone-800 transition-[background-color,color,transform] hover:text-berry-deep active:scale-95 sm:bg-white/70 sm:shadow-xs sm:backdrop-blur-md sm:hover:bg-white lg:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-[background-color,color,transform] hover:text-berry-deep active:scale-95 sm:bg-white/70 sm:shadow-xs sm:backdrop-blur-md sm:hover:bg-white lg:hidden"
       >
         <span className="flex flex-col gap-[5px]">
           <span className="h-[2px] w-5 rounded-full bg-current" />
@@ -162,10 +162,11 @@ export default function FullscreenMenu() {
                   className="shrink-0"
                 >
                   <Image
-                    src="/navbar-logo.png"
+                    src="/navbar-logo.webp"
                     alt="Bakery Delight"
-                    width={2138}
-                    height={736}
+                    width={465}
+                    height={160}
+                    sizes="192px"
                     className="h-10 w-auto sm:h-12"
                   />
                 </Link>
@@ -174,7 +175,7 @@ export default function FullscreenMenu() {
                   type="button"
                   aria-label="Close menu"
                   onClick={close}
-                  className="grid h-11 w-11 place-items-center rounded-full bg-white text-stone-800 shadow-xs ring-1 ring-cream-300 transition-[background-color,box-shadow,transform] hover:bg-cream-50 hover:shadow-md active:scale-95"
+                  className="grid h-11 w-11 place-items-center rounded-full bg-white text-ink shadow-xs ring-1 ring-cream-300 transition-[background-color,box-shadow,transform] hover:bg-cream-50 hover:shadow-md active:scale-95"
                 >
                   <svg
                     className="h-5 w-5"

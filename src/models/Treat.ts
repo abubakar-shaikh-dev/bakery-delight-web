@@ -6,26 +6,30 @@ export interface ITreat {
   category: string;
   tagline: string;
   description: string;
-  price: number | null;
-  image: string;
-  featured: boolean;
+    price: number | null;
+    image: string;
+    cloudinaryPublicId: string | null;
+    featured: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const treatSchema = new Schema<ITreat>(
   {
-    name: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true, maxlength: 80 },
     slug: { type: String, required: true, unique: true, index: true },
     category: { type: String, required: true, default: "Cakes", index: true },
-    tagline: { type: String, default: "" },
-    description: { type: String, default: "" },
+    tagline: { type: String, default: "", maxlength: 80 },
+    description: { type: String, default: "", maxlength: 1200 },
     price: { type: Number, default: null },
-    image: { type: String, default: "" },
+    image: { type: String, default: "", maxlength: 500 },
+    cloudinaryPublicId: { type: String, default: null, maxlength: 200 },
     featured: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
+
+treatSchema.index({ featured: -1, createdAt: 1 });
 
 export function slugify(text: string) {
   return text

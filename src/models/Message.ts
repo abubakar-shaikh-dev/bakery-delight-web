@@ -20,5 +20,7 @@ const messageSchema = new Schema<IMessage>(
   { timestamps: true },
 );
 
+messageSchema.index({ read: 1, createdAt: -1 });
+
 const Message = models.Message ?? model<IMessage>("Message", messageSchema);
 export default Message;

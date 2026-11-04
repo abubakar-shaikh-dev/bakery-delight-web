@@ -6,14 +6,14 @@ import { IconArrowRight, IconHeart } from "./icons";
 /* Handwritten note — mobile variant (mockup: 4 staggered lines + heart + swash) */
 function MobileNote() {
   return (
-    <div className="absolute right-4 top-[31%] z-20 -rotate-[7deg] text-right font-hand text-[21px] font-semibold leading-[1.18] text-berry-ink select-none sm:hidden">
+    <div className="absolute right-4 top-[31%] z-20 -rotate-[7deg] text-right font-hand text-[22px] font-semibold leading-[1.18] text-berry-ink select-none sm:hidden">
       <p className="pr-2">More</p>
       <p className="pr-1">than</p>
       <p className="pr-2">Cakes</p>
       <p className="pr-0">It&rsquo;s Love</p>
       <IconHeart className="mt-1.5 ml-auto mr-7 h-[18px] w-[18px]" strokeWidth={1.8} />
       <svg className="ml-auto mr-1 mt-1 h-3 w-[86px]" viewBox="0 0 86 12" fill="none">
-        <path d="M2 9 C 22 12.5, 52 10, 84 1.5" stroke="#7a2f35" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M2 9 C 22 12.5, 52 10, 84 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
     </div>
   );
@@ -25,7 +25,23 @@ export default function Hero() {
       id="top"
       className="relative min-h-[calc(100vw*1680/941)] w-full overflow-hidden bg-cream-100 sm:min-h-[calc(100vw*941/1672)]"
     >
-      {/* Backgrounds: portrait photo on phones, wave-baked photo on larger screens */}
+      {/* Backgrounds: portrait photo on phones, wave-baked photo on larger screens.
+          Preloaded per breakpoint (React hoists these links) since CSS backgrounds
+          are discovered late — this makes the LCP image start fetching immediately. */}
+      <link
+        rel="preload"
+        as="image"
+        href="/hero-bg-mobile.jpg"
+        media="(max-width: 639px)"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/hero-bg.webp"
+        media="(min-width: 640px)"
+        fetchPriority="high"
+      />
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-cover bg-center sm:hidden"
@@ -34,7 +50,7 @@ export default function Hero() {
       <div
         aria-hidden="true"
         className="absolute inset-0 hidden bg-cover bg-bottom sm:block"
-        style={{ backgroundImage: "url('/hero-bg.png')" }}
+        style={{ backgroundImage: "url('/hero-bg.webp')" }}
       />
 
       {/* Soft scrim behind hero copy on narrow desktop layouts */}
@@ -93,7 +109,7 @@ export default function Hero() {
       <MobileNote />
 
       {/* Handwritten note — larger screens */}
-      <div className="absolute right-8 top-[30%] z-20 hidden -rotate-6 text-right font-hand text-xl font-semibold leading-[1.15] text-berry-ink select-none [text-shadow:0_1px_10px_rgba(253,242,236,0.85)] sm:block sm:right-10 md:right-14 md:top-[16%] md:text-[27px] xl:right-24">
+      <div className="absolute right-8 top-[30%] z-20 hidden -rotate-6 text-right font-hand text-xl font-semibold leading-[1.15] text-berry-ink select-none [text-shadow:0_1px_10px_rgba(253,242,236,0.85)] sm:block sm:right-10 md:right-14 md:top-[16%] md:text-[28px] xl:right-24">
         <p className="pr-7">More than</p>
         <p className="pr-1">Cakes</p>
         <p className="pr-8">It&rsquo;s Love</p>
@@ -108,7 +124,7 @@ export default function Hero() {
       {/* Mobile-only baked note text (rests in the faded cream zone, mirrors the photo's) */}
       <div className="absolute bottom-6 left-6 z-20 select-none text-cocoa sm:hidden">
         <div className="border-l-[1.5px] border-cocoa/50 pl-4">
-          <p className="font-hand text-[19px] font-semibold leading-[1.15]">
+          <p className="font-hand text-lg font-semibold leading-[1.15]">
             Good food,
             <br />
             happier people

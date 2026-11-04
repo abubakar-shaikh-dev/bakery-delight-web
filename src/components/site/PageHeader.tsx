@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { IconChevronRight } from "../icons";
 
 /**
  * Shared inner-page header: cream band, handwritten eyebrow (the site's
@@ -40,7 +40,7 @@ export default function PageHeader({
           <Link href="/" className="transition-colors hover:text-berry">
             Home
           </Link>
-          <ChevronRight className="h-3 w-3" strokeWidth={2} />
+          <IconChevronRight className="h-3 w-3" />
           <span className="text-berry-deep">{crumb}</span>
         </nav>
 

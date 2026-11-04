@@ -67,6 +67,7 @@ export default function ReviewCard({
             alt={review.name}
             width={128}
             height={128}
+            sizes="44px"
             className="h-11 w-11 rounded-full object-cover ring-2 ring-berry-soft"
           />
         ) : (

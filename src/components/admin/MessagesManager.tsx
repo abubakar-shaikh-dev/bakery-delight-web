@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   Clock,
@@ -10,6 +10,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { IconMail } from "../icons";
+import { ConfirmDrawer } from "./Drawer";
+import LoadError from "./LoadError";
+import { MessageRowSkeleton } from "./Skeletons";
 import { showToast } from "./AdminShell";
 
 interface Message {
@@ -25,19 +28,32 @@ interface Message {
 export default function MessagesManager() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<Message | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const reqId = useRef(0);
 
   const load = useCallback(async (f: string) => {
+    const id = ++reqId.current;
     setLoading(true);
+    setLoadError(false);
     try {
-      const res = await fetch(`/api/admin/messages${f === "unread" ? "?status=unread" : ""}`);
+      const res = await fetch(
+        `/api/admin/messages?limit=200${f === "unread" ? "&status=unread" : ""}`,
+      );
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (id !== reqId.current) return;
       setMessages(data.messages ?? []);
     } catch {
-      showToast("Couldn't load messages.", "error");
+      if (id === reqId.current) {
+        setLoadError(true);
+        showToast("Couldn't load messages.", "error");
+      }
     } finally {
-      setLoading(false);
+      if (id === reqId.current) setLoading(false);
     }
   }, []);
 
@@ -58,13 +74,19 @@ export default function MessagesManager() {
     }
   }
 
-  async function remove(m: Message) {
-    const res = await fetch(`/api/admin/messages/${m._id}`, { method: "DELETE" });
-    if (res.ok) {
+  async function remove() {
+    if (!deleting || removing) return;
+    setRemoving(true);
+    try {
+      const res = await fetch(`/api/admin/messages/${deleting._id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Couldn't delete the message.");
       showToast("Message deleted.");
-      setMessages((list) => list.filter((x) => x._id !== m._id));
-    } else {
-      showToast("Couldn't delete the message.", "error");
+      setMessages((list) => list.filter((x) => x._id !== deleting._id));
+      setDeleting(null);
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setRemoving(false);
     }
   }
 
@@ -87,6 +109,7 @@ export default function MessagesManager() {
             <button
               key={k}
               onClick={() => setFilter(k)}
+              aria-pressed={filter === k}
               className={`rounded-full px-4 py-1.5 text-[13px] font-medium capitalize transition-colors ${
                 filter === k ? "bg-berry text-white" : "text-stone-500 hover:text-berry"
               }`}
@@ -100,9 +123,11 @@ export default function MessagesManager() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton h-20 rounded-2xl" />
+            <MessageRowSkeleton key={i} />
           ))}
         </div>
+      ) : loadError ? (
+        <LoadError label="The inbox couldn't be loaded." onRetry={() => load(filter)} />
       ) : messages.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
@@ -133,6 +158,8 @@ export default function MessagesManager() {
                     setOpenId(open ? null : m._id);
                     if (!m.read) setRead(m, true);
                   }}
+                  aria-expanded={open}
+                  aria-controls={`message-body-${m._id}`}
                   className="flex w-full items-start gap-4 p-5 text-left"
                 >
                   <span
@@ -170,7 +197,7 @@ export default function MessagesManager() {
                 </button>
 
                 {open && (
-                  <div className="border-t border-cream-300 px-5 py-4">
+                  <div id={`message-body-${m._id}`} className="border-t border-cream-300 px-5 py-4">
                     <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-stone-600">
                       {m.message}
                     </p>
@@ -228,7 +255,7 @@ export default function MessagesManager() {
                         )}
                       </button>
                       <button
-                        onClick={() => remove(m)}
+                        onClick={() => setDeleting(m)}
                         className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry-deep hover:ring-berry-deep/40"
                       >
                         <Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} /> Delete
@@ -241,6 +268,28 @@ export default function MessagesManager() {
           })}
         </div>
       )}
+
+      {/* delete confirm */}
+      <ConfirmDrawer
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Delete this message?"
+        body={
+          deleting ? (
+            <>
+              {deleting.name}&rsquo;s message will be removed permanently. Reply first if
+              you still need the details.
+            </>
+          ) : (
+            ""
+          )
+        }
+        confirmLabel="Delete"
+        busy={removing}
+        onConfirm={remove}
+      />
     </div>
   );
 }

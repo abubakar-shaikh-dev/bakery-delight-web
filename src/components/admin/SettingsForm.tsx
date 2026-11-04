@@ -12,6 +12,7 @@ import {
   Save,
 } from "lucide-react";
 import { IconFacebook, IconInstagram, IconPinterest, IconWhatsApp, IconYoutube } from "../icons";
+import LoadError from "./LoadError";
 import { showToast } from "./AdminShell";
 
 interface Settings {
@@ -36,15 +37,41 @@ const labelCls = "field-label";
 
 export default function SettingsForm() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+    fetch("/api/admin/settings")
+      .then(async (res) => {
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (!cancelled) {
+          if (data.settings) setSettings(data.settings);
+          else throw new Error();
+          setLoadError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function load() {
+    try {
       const res = await fetch("/api/admin/settings");
+      if (!res.ok) throw new Error();
       const data = await res.json();
       if (data.settings) setSettings(data.settings);
-    })();
-  }, []);
+      else throw new Error();
+      setLoadError(false);
+    } catch {
+      setLoadError(true);
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -58,13 +85,23 @@ export default function SettingsForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
-      if (!res.ok) throw new Error("Save failed.");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Save failed.");
       showToast("Settings saved — the site is updated.");
     } catch (err) {
       showToast((err as Error).message, "error");
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loadError) {
+    return (
+      <LoadError
+        label="The settings couldn't be loaded."
+        onRetry={load}
+      />
+    );
   }
 
   if (!settings) {
@@ -100,8 +137,11 @@ export default function SettingsForm() {
         </h3>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls}>Bakery name</label>
+            <label className={labelCls} htmlFor="set-bakery-name">
+              Bakery name
+            </label>
             <input
+              id="set-bakery-name"
               value={settings.bakeryName}
               onChange={(e) => set("bakeryName", e.target.value)}
               className={inputCls}
@@ -109,8 +149,11 @@ export default function SettingsForm() {
             />
           </div>
           <div>
-            <label className={labelCls}>Tagline (shown in footer)</label>
+            <label className={labelCls} htmlFor="set-tagline">
+              Tagline (shown in footer)
+            </label>
             <input
+              id="set-tagline"
               value={settings.tagline}
               onChange={(e) => set("tagline", e.target.value)}
               className={inputCls}
@@ -128,45 +171,58 @@ export default function SettingsForm() {
         </h3>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls}>Phone (display)</label>
+            <label className={labelCls} htmlFor="set-phone">
+              Phone (display)
+            </label>
             <input
+              id="set-phone"
               value={settings.phone}
               onChange={(e) => set("phone", e.target.value)}
               className={inputCls}
             />
           </div>
           <div>
-            <label className={labelCls}>WhatsApp number (display)</label>
+            <label className={labelCls} htmlFor="set-wa-number">
+              WhatsApp number (display)
+            </label>
             <input
+              id="set-wa-number"
               value={settings.whatsappNumber}
               onChange={(e) => set("whatsappNumber", e.target.value)}
               className={inputCls}
             />
           </div>
           <div>
-            <label className={labelCls}>
+            <label className={labelCls} htmlFor="set-wa-digits">
               WhatsApp digits <span className="font-normal text-stone-400">(for wa.me links, e.g. 919876543210)</span>
             </label>
             <input
+              id="set-wa-digits"
               value={settings.whatsappDigits}
               onChange={(e) => set("whatsappDigits", e.target.value)}
               className={inputCls}
+              inputMode="numeric"
             />
           </div>
           <div>
-            <label className={labelCls}>Email</label>
+            <label className={labelCls} htmlFor="set-email">
+              Email
+            </label>
             <input
+              id="set-email"
+              type="email"
               value={settings.email}
               onChange={(e) => set("email", e.target.value)}
               className={inputCls}
             />
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>
+            <label className={labelCls} htmlFor="set-address">
               <MapPin className="mr-1 inline h-3.5 w-3.5" strokeWidth={1.8} />
               Address
             </label>
             <input
+              id="set-address"
               value={settings.address}
               onChange={(e) => set("address", e.target.value)}
               className={inputCls}
@@ -187,12 +243,16 @@ export default function SettingsForm() {
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {socialInputs.map((s) => (
             <div key={s.key}>
-              <label className={labelCls}>{s.label}</label>
+              <label className={labelCls} htmlFor={`set-social-${s.key}`}>
+                {s.label}
+              </label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-berry-deep">
                   {s.icon}
                 </span>
                 <input
+                  id={`set-social-${s.key}`}
+                  type="url"
                   value={settings.socials[s.key]}
                   onChange={(e) => setSocial(s.key, e.target.value)}
                   placeholder="https://…"
@@ -205,11 +265,7 @@ export default function SettingsForm() {
       </section>
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full bg-berry px-7 py-3 text-[14px] font-medium text-white transition-colors hover:bg-berry-deep disabled:opacity-60"
-        >
+        <button type="submit" disabled={saving} className="btn-primary px-7 py-3 text-[14px]">
           {saving ? (
             <LoaderCircle className="h-4 w-4 animate-spin" />
           ) : (

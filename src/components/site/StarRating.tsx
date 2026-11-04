@@ -8,10 +8,15 @@ export default function StarRating({
   className?: string;
 }) {
   return (
-    <div className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
+    <div
+      className="flex items-center gap-0.5"
+      role="img"
+      aria-label={rating > 0 ? `${rating} out of 5 stars` : undefined}
+    >
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
+          aria-hidden="true"
           className={`${className} ${
             i <= rating
               ? "fill-gold text-gold"

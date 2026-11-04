@@ -47,7 +47,11 @@ function ToastHost() {
 
   if (!toast) return null;
   return (
-    <div className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0">
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0"
+    >
       <div
         className={`flex items-center gap-2.5 rounded-full px-5 py-3 text-[13px] font-medium text-white shadow-xl ${
           toast.kind === "success" ? "bg-success" : "bg-berry-deep"
@@ -122,10 +126,10 @@ export default function AdminShell({
 
   const loadUnread = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/messages?status=unread");
+      const res = await fetch("/api/admin/messages?limit=1&status=unread");
       if (!res.ok) return;
       const data = await res.json();
-      setUnread(data.messages?.length ?? 0);
+      setUnread(typeof data.total === "number" ? data.total : (data.messages?.length ?? 0));
     } catch {
       /* ignore */
     }
@@ -135,10 +139,26 @@ export default function AdminShell({
     loadUnread();
   }, [loadUnread, pathname]);
 
+  // Escape closes the mobile drawer.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDrawerOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [drawerOpen]);
+
   async function logout() {
     setLoggingOut(true);
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.replace("/admin/login");
+    try {
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      if (!res.ok) throw new Error();
+      router.replace("/admin/login");
+    } catch {
+      showToast("Couldn't sign out. Please try again.", "error");
+      setLoggingOut(false);
+    }
   }
 
   const title = titles[pathname] ?? "Admin";
@@ -260,6 +280,7 @@ export default function AdminShell({
       <div
         className={`fixed inset-0 z-50 lg:hidden ${drawerOpen ? "" : "pointer-events-none"}`}
         aria-hidden={!drawerOpen}
+        inert={!drawerOpen}
       >
         <div
           onClick={() => setDrawerOpen(false)}
@@ -276,7 +297,7 @@ export default function AdminShell({
           <button
             onClick={() => setDrawerOpen(false)}
             aria-label="Close menu"
-            className="absolute right-3 top-6 grid h-9 w-9 place-items-center rounded-full text-white/60 hover:bg-white/10 hover:text-white"
+            className="absolute right-3 top-6 grid h-11 w-11 place-items-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
           >
             <X className="h-5 w-5" strokeWidth={2} />
           </button>

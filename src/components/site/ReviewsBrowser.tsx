@@ -18,19 +18,22 @@ export default function ReviewsBrowser({
   const [total, setTotal] = useState(initial.total);
   const [loadingMore, setLoadingMore] = useState(false);
   const [reachedEnd, setReachedEnd] = useState(initial.reviews.length >= initial.total);
+  const [loadError, setLoadError] = useState(false);
   const sentinel = useRef<HTMLDivElement>(null);
 
   const loadMore = useCallback(async () => {
     setLoadingMore(true);
     try {
       const res = await fetch(`/api/reviews?offset=${reviews.length}&limit=${PAGE}`);
+      if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
+      setLoadError(false);
       const existing = new Set(reviews.map((r) => r._id));
       setReviews((list) => [...list, ...data.reviews.filter((r: ReviewData) => !existing.has(r._id))]);
       setTotal(data.total);
       setReachedEnd(reviews.length + data.reviews.length >= data.total);
     } catch {
-      /* retry on next intersection */
+      setLoadError(true); // retried on the next intersection
     } finally {
       setLoadingMore(false);
     }
@@ -82,6 +85,12 @@ export default function ReviewsBrowser({
       </div>
 
       <div ref={sentinel} className="h-px" />
+
+      {loadError && (
+        <p role="alert" className="mt-8 text-center text-[13px] font-medium text-stone-500">
+          Some reviews couldn&rsquo;t load — scroll down to retry.
+        </p>
+      )}
 
       {reachedEnd && reviews.length > PAGE && (
         <p className="mt-12 flex items-center justify-center gap-2 text-center font-hand text-2xl text-berry-deep">

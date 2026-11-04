@@ -16,7 +16,9 @@
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-easy-crop": "^6.2.4"
+    "react-easy-crop": "^6.2.4",
+    "sharp": "^0.35.5",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

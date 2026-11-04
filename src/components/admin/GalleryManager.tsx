@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Check, LoaderCircle, Pencil, Trash2 } from "lucide-react";
 import ImageUploader from "./ImageUploader";
+import { ConfirmDrawer } from "./Drawer";
+import LoadError from "./LoadError";
 import { showToast } from "./AdminShell";
 
 interface GalleryItem {
@@ -15,19 +17,24 @@ interface GalleryItem {
 export default function GalleryManager() {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [pendingCaption, setPendingCaption] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState("");
   const [deleting, setDeleting] = useState<GalleryItem | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await fetch("/api/admin/gallery");
+      if (!res.ok) throw new Error();
       const data = await res.json();
       setItems(data.images ?? []);
     } catch {
+      setLoadError(true);
       showToast("Couldn't load the gallery.", "error");
     } finally {
       setLoading(false);
@@ -38,14 +45,14 @@ export default function GalleryManager() {
     load();
   }, [load]);
 
-  async function addPhoto(url: string) {
+  async function addPhoto(url: string, publicId?: string | null) {
     if (!url) return;
     setUploading(true);
     try {
       const res = await fetch("/api/admin/gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, caption: pendingCaption }),
+        body: JSON.stringify({ url, caption: pendingCaption, cloudinaryPublicId: publicId ?? null }),
       });
       if (!res.ok) throw new Error("Save failed.");
       showToast("Photo added to the homepage gallery.");
@@ -59,14 +66,18 @@ export default function GalleryManager() {
   }
 
   async function remove() {
-    if (!deleting) return;
-    const res = await fetch(`/api/admin/gallery/${deleting._id}`, { method: "DELETE" });
-    if (res.ok) {
+    if (!deleting || removing) return;
+    setRemoving(true);
+    try {
+      const res = await fetch(`/api/admin/gallery/${deleting._id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Couldn't remove the photo.");
       showToast("Photo removed.");
       setDeleting(null);
       load();
-    } else {
-      showToast("Couldn't remove the photo.", "error");
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setRemoving(false);
     }
   }
 
@@ -111,10 +122,14 @@ export default function GalleryManager() {
             onUploaded={addPhoto}
           />
           <div>
-            <label className="mb-1.5 block text-[13px] font-medium text-stone-600">
+            <label
+              className="mb-1.5 block text-[13px] font-medium text-stone-600"
+              htmlFor="gallery-caption"
+            >
               Caption <span className="font-normal text-stone-400">(optional)</span>
             </label>
             <input
+              id="gallery-caption"
               value={pendingCaption}
               onChange={(e) => setPendingCaption(e.target.value)}
               placeholder="Strawberry cream cake, ready for pickup…"
@@ -137,6 +152,8 @@ export default function GalleryManager() {
             <div key={i} className="skeleton aspect-square rounded-2xl" />
           ))}
         </div>
+      ) : loadError ? (
+        <LoadError label="The gallery couldn't be loaded." onRetry={load} />
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <h3 className="font-display text-xl font-bold text-ink">
@@ -178,13 +195,20 @@ export default function GalleryManager() {
                     <input
                       value={editCaption}
                       onChange={(e) => setEditCaption(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          commitEdit(g);
+                        }
+                      }}
+                      aria-label="Edit caption"
                       className="w-full rounded-lg border border-berry/40 px-2.5 py-1.5 text-[13px] outline-none"
                       autoFocus
                     />
                     <button
                       onClick={() => commitEdit(g)}
                       aria-label="Save caption"
-                      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-berry text-white"
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-berry text-white"
                     >
                       <Check className="h-4 w-4" strokeWidth={2} />
                     </button>
@@ -197,7 +221,7 @@ export default function GalleryManager() {
                     <button
                       onClick={() => startEdit(g)}
                       aria-label="Edit caption"
-                      className="shrink-0 text-stone-300 transition-colors hover:text-berry"
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cream-100 text-stone-400 transition-colors hover:bg-berry-soft hover:text-berry"
                     >
                       <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
                     </button>
@@ -210,35 +234,16 @@ export default function GalleryManager() {
       )}
 
       {/* delete confirm */}
-      {deleting && (
-        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-7 text-center shadow-2xl">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger-soft text-berry-deep">
-              <Trash2 className="h-6 w-6" strokeWidth={1.8} />
-            </span>
-            <h3 className="mt-4 font-display text-xl font-bold text-ink">
-              Remove this photo?
-            </h3>
-            <p className="mt-1.5 text-[13px] text-stone-500">
-              It will also be deleted from Cloudinary.
-            </p>
-            <div className="mt-6 flex justify-center gap-3">
-              <button
-                onClick={() => setDeleting(null)}
-                className="rounded-full px-5 py-2.5 text-[13px] font-medium text-stone-500 transition-colors hover:bg-stone-100"
-              >
-                Keep it
-              </button>
-              <button
-                onClick={remove}
-                className="rounded-full bg-berry-deep px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-danger"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDrawer
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Remove this photo?"
+        body="It will also be deleted from Cloudinary."
+        busy={removing}
+        onConfirm={remove}
+      />
     </div>
   );
 }

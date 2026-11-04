@@ -32,7 +32,7 @@ export default function Treats({
       </div>
 
       <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-5">
-        {treats.map((t) => (
+        {treats.map((t, i) => (
           <Link
             key={t._id}
             href="/treats"
@@ -46,6 +46,7 @@ export default function Treats({
                   fill
                   sizes="(min-width:1280px) 205px, (min-width:768px) 30vw, 46vw"
                   className="object-cover"
+                  priority={i < 2}
                 />
               ) : (
                 <div className="grid h-full place-items-center bg-berry-soft font-display text-4xl font-bold text-berry-deep">

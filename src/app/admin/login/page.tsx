@@ -15,9 +15,10 @@ export default function AdminLoginPage() {
       {/* brand panel */}
       <div className="relative hidden overflow-hidden bg-cocoa lg:block">
         <Image
-          src="/hero-bg.png"
+          src="/hero-bg.webp"
           alt=""
           fill
+          sizes="(min-width: 1024px) 55vw, 0px"
           className="object-cover opacity-40"
           priority
         />

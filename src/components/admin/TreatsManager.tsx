@@ -10,9 +10,11 @@ import {
   Search,
   Star,
   Trash2,
-  X,
 } from "lucide-react";
 import ImageUploader from "./ImageUploader";
+import { AdminDrawer, ConfirmDrawer } from "./Drawer";
+import LoadError from "./LoadError";
+import { TreatRowSkeleton } from "./Skeletons";
 import { showToast } from "./AdminShell";
 
 interface Treat {
@@ -24,6 +26,7 @@ interface Treat {
   description: string;
   price: number | null;
   image: string;
+  cloudinaryPublicId?: string | null;
   featured: boolean;
 }
 
@@ -53,22 +56,35 @@ export default function TreatsManager() {
   const [treats, setTreats] = useState<Treat[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [q, setQ] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
+  const [imagePublicId, setImagePublicId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<Treat | null>(null);
+  const [removing, setRemoving] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reqId = useRef(0);
 
   const load = useCallback(async (query: string) => {
+    const id = ++reqId.current;
     setLoading(true);
+    setLoadError(false);
     try {
-      const res = await fetch(`/api/admin/treats${query ? `?q=${encodeURIComponent(query)}` : ""}`);
+      const res = await fetch(
+        `/api/admin/treats?limit=200${query ? `&q=${encodeURIComponent(query)}` : ""}`,
+      );
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (id !== reqId.current) return;
       setTreats(data.treats ?? []);
     } catch {
-      showToast("Couldn't load treats.", "error");
+      if (id === reqId.current) {
+        setLoadError(true);
+        showToast("Couldn't load treats.", "error");
+      }
     } finally {
-      setLoading(false);
+      if (id === reqId.current) setLoading(false);
     }
   }, []);
 
@@ -77,12 +93,16 @@ export default function TreatsManager() {
     (async () => {
       try {
         const res = await fetch("/api/admin/categories");
+        if (!res.ok) return;
         const data = await res.json();
         setCategories((data.categories ?? []).map((c: { name: string }) => c.name));
       } catch {
         /* form falls back to free text */
       }
     })();
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
   }, [load]);
 
   function onSearch(v: string) {
@@ -105,6 +125,7 @@ export default function TreatsManager() {
         description: form.description,
         price: form.price === "" ? null : Math.max(0, Number(form.price)),
         image: form.image,
+        cloudinaryPublicId: imagePublicId,
         featured: form.featured,
       };
       const res = await fetch(
@@ -119,6 +140,7 @@ export default function TreatsManager() {
       if (!res.ok) throw new Error(data.error || "Save failed.");
       showToast(form._id ? "Treat updated." : "Treat added to the menu.");
       setForm(null);
+      setImagePublicId(null);
       load(q.trim());
     } catch (err) {
       showToast((err as Error).message, "error");
@@ -128,14 +150,19 @@ export default function TreatsManager() {
   }
 
   async function remove() {
-    if (!deleting) return;
-    const res = await fetch(`/api/admin/treats/${deleting._id}`, { method: "DELETE" });
-    if (res.ok) {
+    if (!deleting || removing) return;
+    setRemoving(true);
+    try {
+      const res = await fetch(`/api/admin/treats/${deleting._id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Couldn't remove the treat.");
       showToast(`"${deleting.name}" removed from the menu.`);
       setDeleting(null);
       load(q.trim());
-    } else {
-      showToast("Couldn't remove the treat.", "error");
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setRemoving(false);
     }
   }
 
@@ -168,9 +195,11 @@ export default function TreatsManager() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton h-24 rounded-2xl" />
+            <TreatRowSkeleton key={i} />
           ))}
         </div>
+      ) : loadError ? (
+        <LoadError label="The treats list couldn't be loaded." onRetry={() => load(q.trim())} />
       ) : treats.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
@@ -192,7 +221,7 @@ export default function TreatsManager() {
             >
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-berry-soft sm:h-[72px] sm:w-[72px]">
                 {t.image ? (
-                  <Image src={t.image} alt={t.name} fill sizes="72px" className="object-cover" />
+                  <Image src={t.image} alt={t.name} fill sizes="(min-width:640px) 72px, 64px" className="object-cover" />
                 ) : (
                   <span className="grid h-full place-items-center font-display text-2xl font-bold text-berry-deep">
                     {t.name.charAt(0)}
@@ -221,7 +250,7 @@ export default function TreatsManager() {
 
               <div className="flex shrink-0 gap-2">
                 <button
-                  onClick={() =>
+                  onClick={() => {
                     setForm({
                       _id: t._id,
                       name: t.name,
@@ -231,17 +260,18 @@ export default function TreatsManager() {
                       price: t.price === null ? "" : String(t.price),
                       image: t.image,
                       featured: t.featured,
-                    })
-                  }
+                    });
+                    setImagePublicId(t.cloudinaryPublicId ?? null);
+                  }}
                   aria-label={`Edit ${t.name}`}
-                  className="grid h-9 w-9 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry hover:text-white hover:ring-berry"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry hover:text-white hover:ring-berry"
                 >
                   <Pencil className="h-4 w-4" strokeWidth={1.8} />
                 </button>
                 <button
                   onClick={() => setDeleting(t)}
                   aria-label={`Delete ${t.name}`}
-                  className="grid h-9 w-9 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
                 >
                   <Trash2 className="h-4 w-4" strokeWidth={1.8} />
                 </button>
@@ -251,181 +281,187 @@ export default function TreatsManager() {
         </div>
       )}
 
-      {/* add / edit modal */}
-      {form && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-6">
-          <div className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-t-2xl bg-white p-6 shadow-2xl sm:rounded-2xl sm:p-8">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-2xl font-bold text-ink">
-                {form._id ? "Edit treat" : "New treat"}
-              </h3>
-              <button
-                onClick={() => setForm(null)}
-                aria-label="Close"
-                className="grid h-9 w-9 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
-              >
-                <X className="h-5 w-5" strokeWidth={2} />
-              </button>
-            </div>
-
-            <form onSubmit={save} className="mt-5 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className={labelCls}>Name *</label>
-                  <input
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Strawberry Cream Cake"
-                    className={inputCls}
-                    maxLength={80}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Category</label>
-                  {categories.length > 0 ? (
-                    <select
-                      value={form.category}
-                      onChange={(e) => setForm({ ...form, category: e.target.value })}
-                      className={`${inputCls} appearance-none`}
-                    >
-                      {categories.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      value={form.category}
-                      onChange={(e) => setForm({ ...form, category: e.target.value })}
-                      placeholder="Cakes"
-                      className={inputCls}
-                      maxLength={40}
-                    />
-                  )}
-                  <p className="mt-1 text-[12px] text-stone-500">
-                    Add new ones under Categories in the sidebar.
-                  </p>
-                </div>
-              </div>
-
+      {/* add / edit drawer */}
+      <AdminDrawer
+        open={form !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setForm(null);
+            setImagePublicId(null);
+          }
+        }}
+        title={form?._id ? "Edit treat" : "New treat"}
+        dismissible={false}
+      >
+        {form && (
+          <form onSubmit={save} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className={labelCls}>Tagline</label>
+                <label className={labelCls} htmlFor="treat-name">
+                  Name *
+                </label>
                 <input
-                  value={form.tagline}
-                  onChange={(e) => setForm({ ...form, tagline: e.target.value })}
-                  placeholder="For every celebration"
+                  id="treat-name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Strawberry Cream Cake"
                   className={inputCls}
                   maxLength={80}
                 />
               </div>
-
-              <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
-                <div>
-                  <label className={labelCls}>Price (₹)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    placeholder="699"
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Featured</label>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, featured: !form.featured })}
-                    className={`flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
-                      form.featured
-                        ? "border-gold-ink bg-gold-soft text-gold-ink"
-                        : "border-cream-300 bg-white text-stone-400 hover:text-stone-600"
-                    }`}
-                  >
-                    <Star
-                      className={`h-4 w-4 ${form.featured ? "fill-gold-ink" : ""}`}
-                      strokeWidth={1.8}
-                    />
-                    {form.featured ? "On homepage" : "Not featured"}
-                  </button>
-                </div>
-              </div>
-
               <div>
-                <label className={labelCls}>Description</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="A short, delicious description…"
-                  rows={3}
-                  maxLength={1200}
-                  className={`${inputCls} resize-none`}
+                <label className={labelCls} htmlFor="treat-category">
+                  Category
+                </label>
+                {categories.length > 0 ? (
+                  <select
+                    id="treat-category"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className={`${inputCls} appearance-none`}
+                  >
+                    <option value="" disabled>
+                      Choose a category…
+                    </option>
+                    {categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    id="treat-category"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    placeholder="Cakes"
+                    className={inputCls}
+                    maxLength={40}
+                  />
+                )}
+                <p className="mt-1 text-[12px] text-stone-500">
+                  Add new ones under Categories in the sidebar.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls} htmlFor="treat-tagline">
+                Tagline
+              </label>
+              <input
+                id="treat-tagline"
+                value={form.tagline}
+                onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+                placeholder="For every celebration"
+                className={inputCls}
+                maxLength={80}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
+              <div>
+                <label className={labelCls} htmlFor="treat-price">
+                  Price (₹)
+                </label>
+                <input
+                  id="treat-price"
+                  type="number"
+                  min={0}
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  placeholder="699"
+                  className={inputCls}
                 />
               </div>
-
-              <ImageUploader
-                key={form._id ?? "new-treat"}
-                aspect={4 / 3}
-                label="Treat photo"
-                hint="Cropped to 4:3 — shown on the treats page"
-                initialUrl={form.image}
-                onUploaded={(url) => setForm((f) => (f ? { ...f, image: url } : f))}
-              />
-
-              <div className="flex justify-end gap-3 pt-2">
+              <div>
+                <span className={labelCls}>Featured</span>
                 <button
                   type="button"
-                  onClick={() => setForm(null)}
-                  className="btn-ghost"
+                  onClick={() => setForm({ ...form, featured: !form.featured })}
+                  aria-pressed={form.featured}
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
+                    form.featured
+                      ? "border-gold-ink bg-gold-soft text-gold-ink"
+                      : "border-cream-300 bg-white text-stone-400 hover:text-stone-600"
+                  }`}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep disabled:opacity-60"
-                >
-                  {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                  {saving ? "Saving…" : form._id ? "Save changes" : "Add to menu"}
+                  <Star
+                    className={`h-4 w-4 ${form.featured ? "fill-gold-ink" : ""}`}
+                    strokeWidth={1.8}
+                  />
+                  {form.featured ? "On homepage" : "Not featured"}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
 
-      {/* delete confirm */}
-      {deleting && (
-        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-7 text-center shadow-2xl">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger-soft text-berry-deep">
-              <Trash2 className="h-6 w-6" strokeWidth={1.8} />
-            </span>
-            <h3 className="mt-4 font-display text-xl font-bold text-ink">
-              Remove “{deleting.name}”?
-            </h3>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-stone-500">
-              It will disappear from the public menu immediately. This can&rsquo;t be
-              undone.
-            </p>
-            <div className="mt-6 flex justify-center gap-3">
+            <div>
+              <label className={labelCls} htmlFor="treat-description">
+                Description
+              </label>
+              <textarea
+                id="treat-description"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="A short, delicious description…"
+                rows={3}
+                maxLength={1200}
+                className={`${inputCls} resize-none`}
+              />
+            </div>
+
+            <ImageUploader
+              key={form._id ?? "new-treat"}
+              aspect={4 / 3}
+              label="Treat photo"
+              hint="Cropped to 4:3 — shown on the treats page"
+              initialUrl={form.image}
+              onUploaded={(url, publicId) => {
+                setForm((f) => (f ? { ...f, image: url } : f));
+                setImagePublicId(publicId ?? null);
+              }}
+            />
+
+            <div className="flex justify-end gap-3 pt-2">
               <button
-                onClick={() => setDeleting(null)}
+                type="button"
+                onClick={() => {
+                  setForm(null);
+                  setImagePublicId(null);
+                }}
                 className="btn-ghost"
               >
-                Keep it
+                Cancel
               </button>
               <button
-                onClick={remove}
-                className="btn-danger"
+                type="submit"
+                disabled={saving}
+                className="btn-primary"
               >
-                Remove
+                {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                {saving ? "Saving…" : form._id ? "Save changes" : "Add to menu"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </form>
+        )}
+      </AdminDrawer>
+
+      {/* delete confirm */}
+      <ConfirmDrawer
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title={deleting ? `Remove “${deleting.name}”?` : ""}
+        body={
+          <>
+            It will disappear from the public menu immediately. This can&rsquo;t be
+            undone.
+          </>
+        }
+        busy={removing}
+        onConfirm={remove}
+      />
     </div>
   );
 }

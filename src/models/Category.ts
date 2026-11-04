@@ -19,5 +19,7 @@ const categorySchema = new Schema<ICategory>(
   { timestamps: true },
 );
 
+categorySchema.index({ order: 1, name: 1 });
+
 const Category = models.Category ?? model<ICategory>("Category", categorySchema);
 export default Category;

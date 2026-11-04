@@ -24,7 +24,7 @@ export default function Gallery({
             className="flex items-center gap-2.5 text-[15px] font-medium text-berry-deep"
           >
             <IconInstagram className="h-[18px] w-[18px]" />
-            Follow Us @bakerydelight
+            Follow us on Instagram
           </a>
         )}
       </div>
@@ -56,7 +56,7 @@ export default function Gallery({
                 </span>
               )}
               {!showOverlay && g.caption && (
-                <span className="absolute inset-x-0 bottom-0 translate-y-full bg-linear-to-t from-black/60 to-transparent px-3 pb-3 pt-8 text-[12px] font-medium text-white transition-transform duration-200 group-hover:translate-y-0">
+                <span className="absolute inset-x-0 bottom-0 translate-y-full bg-linear-to-t from-black/60 to-transparent px-3 pb-3 pt-8 text-[12px] font-medium text-white transition-transform duration-200 group-hover:translate-y-0 group-focus-within:translate-y-0 max-sm:translate-y-0">
                   {g.caption}
                 </span>
               )}

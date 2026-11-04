@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, SearchX, X, Croissant } from "lucide-react";
 import TreatCard from "./TreatCard";
 import { TreatCardSkeleton } from "./Skeletons";
-import { CategoryGlyph } from "@/components/admin/CategoryIcon";
+import { CategoryGlyph } from "@/components/CategoryIcon";
 import type { CategoryData, TreatData } from "@/lib/site-data";
 
 const PAGE = 8;
@@ -25,19 +25,25 @@ export default function TreatsBrowser({
   const [treats, setTreats] = useState<TreatData[]>(initial.treats);
   const [total, setTotal] = useState(initial.total);
   const [searching, setSearching] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [reachedEnd, setReachedEnd] = useState(initial.treats.length >= initial.total);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentinel = useRef<HTMLDivElement>(null);
   const firstRun = useRef(true);
+  const reqId = useRef(0);
 
   const fetchPage = useCallback(
     async (query: string, cat: string, offset: number, append: boolean) => {
+      const id = ++reqId.current;
       const params = new URLSearchParams({ limit: String(PAGE), offset: String(offset) });
       if (query) params.set("q", query);
       if (cat) params.set("category", cat);
       const res = await fetch(`/api/treats?${params}`);
+      if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
+      if (id !== reqId.current) return; // a newer request superseded this one
+      setLoadError(false);
       setTotal(data.total);
       setReachedEnd(offset + data.treats.length >= data.total);
       setTreats((list) => (append ? [...list, ...data.treats] : data.treats));
@@ -56,6 +62,8 @@ export default function TreatsBrowser({
       setSearching(true);
       try {
         await fetchPage(q.trim(), category, 0, false);
+      } catch {
+        setLoadError(true);
       } finally {
         setSearching(false);
       }
@@ -72,10 +80,10 @@ export default function TreatsBrowser({
     if (!el) return;
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loadingMore && !searching && !reachedEnd) {
+        if (entries[0].isIntersecting && !loadingMore && !searching && !reachedEnd && !loadError) {
           setLoadingMore(true);
           fetchPage(q.trim(), category, treats.length, true)
-            .catch(() => {})
+            .catch(() => setLoadError(true))
             .finally(() => setLoadingMore(false));
         }
       },
@@ -84,7 +92,7 @@ export default function TreatsBrowser({
     io.observe(el);
     return () => io.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, category, treats.length, loadingMore, searching, reachedEnd]);
+  }, [q, category, treats.length, loadingMore, searching, reachedEnd, loadError]);
 
   const chip = (c: string, label: string) => {
     const active = category === c;
@@ -163,6 +171,29 @@ export default function TreatsBrowser({
             <TreatCardSkeleton key={i} />
           ))}
         </div>
+      ) : treats.length === 0 && loadError ? (
+        <div className="mt-10 flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
+            <SearchX className="h-7 w-7" strokeWidth={1.6} />
+          </span>
+          <h3 className="mt-4 font-display text-2xl font-bold text-ink">
+            The menu didn&rsquo;t load
+          </h3>
+          <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-stone-600">
+            Something interrupted the connection. Try again in a moment.
+          </p>
+          <button
+            onClick={() => {
+              setSearching(true);
+              fetchPage(q.trim(), category, 0, false)
+                .catch(() => setLoadError(true))
+                .finally(() => setSearching(false));
+            }}
+            className="mt-5 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+          >
+            Try again
+          </button>
+        </div>
       ) : treats.length === 0 ? (
         <div className="mt-10 flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
@@ -190,7 +221,12 @@ export default function TreatsBrowser({
         </div>
       ) : (
         <>
-          <div className={`mt-10 grid gap-6 transition-opacity sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${searching ? "opacity-50" : ""}`}>
+          {loadError && (
+            <p role="alert" className="mt-6 rounded-xl bg-gold-soft px-4 py-3 text-center text-[13px] font-medium text-gold-ink">
+              Some treats couldn&rsquo;t load — the list below may be incomplete.
+            </p>
+          )}
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {treats.map((t, i) => (
               <TreatCard key={t._id} treat={t} whatsappDigits={whatsappDigits} priority={i < 4} />
             ))}

@@ -10,7 +10,9 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { CATEGORY_ICONS, CategoryGlyph } from "./CategoryIcon";
+import { CATEGORY_ICONS, CategoryGlyph } from "../CategoryIcon";
+import { ConfirmDrawer } from "./Drawer";
+import LoadError from "./LoadError";
 import { showToast } from "./AdminShell";
 
 interface Category {
@@ -32,14 +34,18 @@ export default function CategoriesManager() {
   const [editIcon, setEditIcon] = useState("sparkles");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await fetch("/api/admin/categories");
+      if (!res.ok) throw new Error();
       const data = await res.json();
       setCategories(data.categories ?? []);
     } catch {
+      setLoadError(true);
       showToast("Couldn't load categories.", "error");
     } finally {
       setLoading(false);
@@ -99,20 +105,27 @@ export default function CategoriesManager() {
     const swap = categories[idx + dir];
     if (!swap) return;
     setBusyId(category._id);
-    await Promise.all([
-      fetch(`/api/admin/categories/${category._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: swap.order }),
-      }),
-      fetch(`/api/admin/categories/${swap._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: category.order }),
-      }),
-    ]);
-    setBusyId(null);
-    load();
+    try {
+      const results = await Promise.all([
+        fetch(`/api/admin/categories/${category._id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: swap.order }),
+        }),
+        fetch(`/api/admin/categories/${swap._id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: category.order }),
+        }),
+      ]);
+      if (!results.every((r) => r.ok)) throw new Error("Couldn't move the category.");
+      load();
+    } catch (err) {
+      showToast((err as Error).message, "error");
+      load();
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function remove() {
@@ -200,6 +213,8 @@ export default function CategoriesManager() {
             <div key={i} className="skeleton h-16 rounded-2xl" />
           ))}
         </div>
+      ) : loadError ? (
+        <LoadError label="The categories couldn't be loaded." onRetry={load} />
       ) : categories.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <h3 className="font-display text-xl font-bold text-ink">
@@ -221,8 +236,11 @@ export default function CategoriesManager() {
                 {editing ? (
                   <div className="space-y-3">
                     <div>
-                      <label className="field-label">Name</label>
+                      <label className="field-label" htmlFor="cat-edit-name">
+                        Name
+                      </label>
                       <input
+                        id="cat-edit-name"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         maxLength={40}
@@ -253,13 +271,13 @@ export default function CategoriesManager() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3.5">
-                    <div className="flex flex-col">
+                  <div className="flex items-center gap-2 sm:gap-3.5">
+                    <div className="flex shrink-0 flex-col">
                       <button
                         onClick={() => move(c, -1)}
                         disabled={idx === 0 || busyId === c._id}
                         aria-label={`Move ${c.name} up`}
-                        className="grid h-5 place-items-center text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
+                        className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
                       >
                         <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.2} />
                       </button>
@@ -267,7 +285,7 @@ export default function CategoriesManager() {
                         onClick={() => move(c, 1)}
                         disabled={idx === categories.length - 1 || busyId === c._id}
                         aria-label={`Move ${c.name} down`}
-                        className="grid h-5 place-items-center text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
+                        className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
                       >
                         <ArrowDown className="h-3.5 w-3.5" strokeWidth={2.2} />
                       </button>
@@ -308,33 +326,17 @@ export default function CategoriesManager() {
       )}
 
       {/* delete confirm */}
-      {deleting && (
-        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-7 text-center shadow-2xl">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger-soft text-berry-deep">
-              <Trash2 className="h-6 w-6" strokeWidth={1.8} />
-            </span>
-            <h3 className="mt-4 font-display text-xl font-bold text-ink">
-              Delete “{deleting.name}”?
-            </h3>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-stone-500">
-              Categories with treats can&rsquo;t be deleted — move those treats first.
-            </p>
-            <div className="mt-6 flex justify-center gap-3">
-              <button onClick={() => setDeleting(null)} className="btn-ghost">
-                Keep it
-              </button>
-              <button onClick={remove} disabled={busyId === deleting._id} className="btn-danger">
-                {busyId === deleting._id ? (
-                  <LoaderCircle className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Delete"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDrawer
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title={deleting ? `Delete “${deleting.name}”?` : ""}
+        body="Categories with treats can't be deleted — move those treats first."
+        confirmLabel="Delete"
+        busy={deleting !== null && busyId === deleting._id}
+        onConfirm={remove}
+      />
     </div>
   );
 }

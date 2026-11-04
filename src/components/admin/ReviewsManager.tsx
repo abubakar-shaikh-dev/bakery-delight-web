@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
   LoaderCircle,
@@ -8,8 +8,10 @@ import {
   Plus,
   Star,
   Trash2,
-  X,
 } from "lucide-react";
+import { AdminDrawer, ConfirmDrawer } from "./Drawer";
+import LoadError from "./LoadError";
+import { ReviewRowSkeleton } from "./Skeletons";
 import { showToast } from "./AdminShell";
 import { SocialIcon } from "../site/ReviewCard";
 
@@ -53,21 +55,31 @@ const PLATFORMS = ["", "Instagram", "WhatsApp", "Facebook", "Google", "Other"];
 export default function ReviewsManager() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<Review | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const reqId = useRef(0);
 
   const load = useCallback(async (f: string) => {
+    const id = ++reqId.current;
     setLoading(true);
+    setLoadError(false);
     try {
-      const res = await fetch(`/api/admin/reviews${f !== "all" ? `?status=${f}` : ""}`);
+      const res = await fetch(`/api/admin/reviews?limit=200${f !== "all" ? `&status=${f}` : ""}`);
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (id !== reqId.current) return;
       setReviews(data.reviews ?? []);
     } catch {
-      showToast("Couldn't load reviews.", "error");
+      if (id === reqId.current) {
+        setLoadError(true);
+        showToast("Couldn't load reviews.", "error");
+      }
     } finally {
-      setLoading(false);
+      if (id === reqId.current) setLoading(false);
     }
   }, []);
 
@@ -76,16 +88,21 @@ export default function ReviewsManager() {
   }, [filter, load]);
 
   async function toggleApproved(r: Review) {
-    const res = await fetch(`/api/admin/reviews/${r._id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ approved: !r.approved }),
-    });
-    if (res.ok) {
+    if (busyId) return;
+    setBusyId(r._id);
+    try {
+      const res = await fetch(`/api/admin/reviews/${r._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approved: !r.approved }),
+      });
+      if (!res.ok) throw new Error("Couldn't update the review.");
       showToast(r.approved ? "Review hidden from the site." : "Review approved — it's live.");
       load(filter);
-    } else {
-      showToast("Couldn't update the review.", "error");
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -118,14 +135,18 @@ export default function ReviewsManager() {
   }
 
   async function remove() {
-    if (!deleting) return;
-    const res = await fetch(`/api/admin/reviews/${deleting._id}`, { method: "DELETE" });
-    if (res.ok) {
+    if (!deleting || busyId === deleting._id) return;
+    setBusyId(deleting._id);
+    try {
+      const res = await fetch(`/api/admin/reviews/${deleting._id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Couldn't delete the review.");
       showToast("Review deleted.");
       setDeleting(null);
       load(filter);
-    } else {
-      showToast("Couldn't delete the review.", "error");
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -146,6 +167,7 @@ export default function ReviewsManager() {
             <button
               key={t.key}
               onClick={() => setFilter(t.key)}
+              aria-pressed={filter === t.key}
               className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors ${
                 filter === t.key
                   ? "bg-berry text-white"
@@ -168,9 +190,11 @@ export default function ReviewsManager() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton h-28 rounded-2xl" />
+            <ReviewRowSkeleton key={i} />
           ))}
         </div>
+      ) : loadError ? (
+        <LoadError label="The reviews couldn't be loaded." onRetry={() => load(filter)} />
       ) : reviews.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
@@ -238,10 +262,15 @@ export default function ReviewsManager() {
                   {!r.approved && (
                     <button
                       onClick={() => toggleApproved(r)}
+                      disabled={busyId === r._id}
                       aria-label="Approve review"
-                      className="grid h-9 w-9 place-items-center rounded-full bg-success-soft text-success transition-colors hover:bg-success hover:text-white"
+                      className="grid h-10 w-10 place-items-center rounded-full bg-success-soft text-success transition-colors hover:bg-success hover:text-white disabled:opacity-60"
                     >
-                      <Check className="h-4 w-4" strokeWidth={2.2} />
+                      {busyId === r._id ? (
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4" strokeWidth={2.2} />
+                      )}
                     </button>
                   )}
                   <button
@@ -258,14 +287,14 @@ export default function ReviewsManager() {
                       })
                     }
                     aria-label="Edit review"
-                    className="grid h-9 w-9 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry hover:text-white hover:ring-berry"
+                    className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry hover:text-white hover:ring-berry"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.8} />
                   </button>
                   <button
                     onClick={() => setDeleting(r)}
                     aria-label="Delete review"
-                    className="grid h-9 w-9 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
+                    className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
                   >
                     <Trash2 className="h-4 w-4" strokeWidth={1.8} />
                   </button>
@@ -276,177 +305,179 @@ export default function ReviewsManager() {
         </div>
       )}
 
-      {/* modal */}
-      {form && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-6">
-          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-6 shadow-2xl sm:rounded-2xl sm:p-8">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-2xl font-bold text-ink">
-                {form._id ? "Edit review" : "Add review"}
-              </h3>
-              <button
-                onClick={() => setForm(null)}
-                aria-label="Close"
-                className="grid h-9 w-9 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
-              >
-                <X className="h-5 w-5" strokeWidth={2} />
-              </button>
-            </div>
-
-            <form onSubmit={save} className="mt-5 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-[1fr_130px]">
-                <div>
-                  <label className={labelCls}>Customer name *</label>
-                  <input
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className={inputCls}
-                    maxLength={60}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Rating</label>
-                  <div className="flex h-[42px] items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        aria-label={`${i} stars`}
-                        onClick={() => setForm({ ...form, rating: i })}
-                      >
-                        <Star
-                          className={`h-6 w-6 transition-colors ${
-                            i <= form.rating
-                              ? "fill-gold text-gold"
-                              : "text-cream-400"
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
+      {/* add / edit drawer */}
+      <AdminDrawer
+        open={form !== null}
+        onOpenChange={(open) => {
+          if (!open) setForm(null);
+        }}
+        title={form?._id ? "Edit review" : "Add review"}
+        dismissible={false}
+      >
+        {form && (
+          <form onSubmit={save} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-[1fr_130px]">
               <div>
-                <label className={labelCls}>Review text *</label>
-                <textarea
-                  value={form.text}
-                  onChange={(e) => setForm({ ...form, text: e.target.value })}
-                  rows={4}
-                  maxLength={600}
-                  className={`${inputCls} resize-none`}
+                <label className={labelCls} htmlFor="review-name">
+                  Customer name *
+                </label>
+                <input
+                  id="review-name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className={inputCls}
+                  maxLength={60}
                 />
               </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className={labelCls}>Social platform</label>
-                  <select
-                    value={form.socialPlatform}
-                    onChange={(e) => setForm({ ...form, socialPlatform: e.target.value })}
-                    className={`${inputCls} appearance-none`}
-                  >
-                    {PLATFORMS.map((p) => (
-                      <option key={p} value={p}>
-                        {p || "None"}
-                      </option>
-                    ))}
-                  </select>
+              <div>
+                <span className={labelCls} id="review-rating-label">
+                  Rating
+                </span>
+                <div
+                  role="radiogroup"
+                  aria-labelledby="review-rating-label"
+                  className="flex h-[42px] items-center gap-1"
+                >
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      role="radio"
+                      aria-checked={i === form.rating}
+                      aria-label={`${i} star${i === 1 ? "" : "s"}`}
+                      onClick={() => setForm({ ...form, rating: i })}
+                      className="grid h-8 w-8 place-items-center rounded-full"
+                    >
+                      <Star
+                        className={`h-6 w-6 transition-colors ${
+                          i <= form.rating
+                            ? "fill-gold text-gold"
+                            : "text-cream-400"
+                        }`}
+                      />
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <label className={labelCls}>Link</label>
-                  <input
-                    value={form.socialUrl}
-                    onChange={(e) => setForm({ ...form, socialUrl: e.target.value })}
-                    placeholder="https://…"
-                    className={inputCls}
-                  />
-                </div>
               </div>
+            </div>
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, approved: !form.approved })}
-                  className={`flex-1 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
-                    form.approved
-                      ? "border-success/40 bg-success-soft text-success"
-                      : "border-cream-300 bg-white text-stone-400"
-                  }`}
+            <div>
+              <label className={labelCls} htmlFor="review-text">
+                Review text *
+              </label>
+              <textarea
+                id="review-text"
+                value={form.text}
+                onChange={(e) => setForm({ ...form, text: e.target.value })}
+                rows={4}
+                maxLength={600}
+                className={`${inputCls} resize-none`}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls} htmlFor="review-platform">
+                  Social platform
+                </label>
+                <select
+                  id="review-platform"
+                  value={form.socialPlatform}
+                  onChange={(e) => setForm({ ...form, socialPlatform: e.target.value })}
+                  className={`${inputCls} appearance-none`}
                 >
-                  <span className="flex items-center justify-center gap-1.5">
-                    <Check className="h-4 w-4" strokeWidth={2} />
-                    {form.approved ? "Approved — live" : "Hidden"}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, featured: !form.featured })}
-                  className={`flex-1 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
-                    form.featured
-                      ? "border-gold-ink/40 bg-gold-soft text-gold-ink"
-                      : "border-cream-300 bg-white text-stone-400"
-                  }`}
-                >
-                  <span className="flex items-center justify-center gap-1.5">
-                    <Star className={`h-4 w-4 ${form.featured ? "fill-gold-ink" : ""}`} strokeWidth={1.8} />
-                    {form.featured ? "On homepage" : "Not featured"}
-                  </span>
-                </button>
+                  {PLATFORMS.map((p) => (
+                    <option key={p} value={p}>
+                      {p || "None"}
+                    </option>
+                  ))}
+                </select>
               </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setForm(null)}
-                  className="btn-ghost"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep disabled:opacity-60"
-                >
-                  {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                  {saving ? "Saving…" : "Save review"}
-                </button>
+              <div>
+                <label className={labelCls} htmlFor="review-url">
+                  Link
+                </label>
+                <input
+                  id="review-url"
+                  type="url"
+                  value={form.socialUrl}
+                  onChange={(e) => setForm({ ...form, socialUrl: e.target.value })}
+                  placeholder="https://…"
+                  className={inputCls}
+                />
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
 
-      {/* delete confirm */}
-      {deleting && (
-        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-7 text-center shadow-2xl">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger-soft text-berry-deep">
-              <Trash2 className="h-6 w-6" strokeWidth={1.8} />
-            </span>
-            <h3 className="mt-4 font-display text-xl font-bold text-ink">
-              Delete this review?
-            </h3>
-            <p className="mt-1.5 text-[13px] text-stone-500">
-              {deleting.name}&rsquo;s review will be removed permanently.
-            </p>
-            <div className="mt-6 flex justify-center gap-3">
+            <div className="flex gap-3">
               <button
-                onClick={() => setDeleting(null)}
-                className="btn-ghost"
+                type="button"
+                onClick={() => setForm({ ...form, approved: !form.approved })}
+                aria-pressed={form.approved}
+                className={`flex-1 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
+                  form.approved
+                    ? "border-success/40 bg-success-soft text-success"
+                    : "border-cream-300 bg-white text-stone-400"
+                }`}
               >
-                Keep it
+                <span className="flex items-center justify-center gap-1.5">
+                  <Check className="h-4 w-4" strokeWidth={2} />
+                  {form.approved ? "Approved — live" : "Hidden"}
+                </span>
               </button>
               <button
-                onClick={remove}
-                className="btn-danger"
+                type="button"
+                onClick={() => setForm({ ...form, featured: !form.featured })}
+                aria-pressed={form.featured}
+                className={`flex-1 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
+                  form.featured
+                    ? "border-gold-ink/40 bg-gold-soft text-gold-ink"
+                    : "border-cream-300 bg-white text-stone-400"
+                }`}
               >
-                Delete
+                <span className="flex items-center justify-center gap-1.5">
+                  <Star className={`h-4 w-4 ${form.featured ? "fill-gold-ink" : ""}`} strokeWidth={1.8} />
+                  {form.featured ? "On homepage" : "Not featured"}
+                </span>
               </button>
             </div>
-          </div>
-        </div>
-      )}
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setForm(null)}
+                className="btn-ghost"
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={saving} className="btn-primary">
+                {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                {saving ? "Saving…" : "Save review"}
+              </button>
+            </div>
+          </form>
+        )}
+      </AdminDrawer>
+
+      {/* delete confirm */}
+      <ConfirmDrawer
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Delete this review?"
+        body={
+          deleting ? (
+            <>
+              {deleting.name}&rsquo;s review will be removed permanently.
+            </>
+          ) : (
+            ""
+          )
+        }
+        confirmLabel="Delete"
+        busy={deleting !== null && busyId === deleting._id}
+        onConfirm={remove}
+      />
     </div>
   );
 }

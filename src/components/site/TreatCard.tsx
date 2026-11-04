@@ -19,7 +19,7 @@ export default function TreatCard({
   priority?: boolean;
 }) {
   const waText = encodeURIComponent(
-    `Hi Bakery Delight! I'd like to order ${treat.name}.`,
+    `Hi Bakery Delight, I'd like to order ${treat.name}.`,
   );
 
   return (
@@ -68,9 +68,14 @@ export default function TreatCard({
 
         <div className="mt-auto flex items-center justify-between pt-4">
           <a
-            href={`https://wa.me/${whatsappDigits}?text=${waText}`}
+            href={
+              whatsappDigits
+                ? `https://wa.me/${whatsappDigits}?text=${waText}`
+                : undefined
+            }
             target="_blank"
             rel="noopener noreferrer"
+            aria-disabled={!whatsappDigits}
             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-wa"
           >
             <IconWhatsApp className="h-4 w-4" />

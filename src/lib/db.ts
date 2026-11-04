@@ -35,14 +35,18 @@ const cache: MongooseCache =
   (global.__mongooseCache = { conn: null, promise: null, seeded: false });
 
 /**
- * Bootstraps an empty database once with the original static content,
- * so the site is never empty on first run.
+ * Bootstraps an empty database with the original static content, so the
+ * site is never empty on first run. A persistent marker document makes
+ * this once per database — content the owner deletes stays deleted even
+ * when a collection is emptied and the server restarts.
  */
 async function ensureSeed(conn: Mongoose) {
   if (cache.seeded) return;
   cache.seeded = true;
 
   try {
+    if (await Setting.findOne({ key: "seed" }).lean()) return;
+
     // Spaced createdAt values keep the mockup's display order.
     // Inserted through the raw collection API because mongoose's
     // `timestamps: true` overwrites provided createdAt fields.
@@ -77,6 +81,14 @@ async function ensureSeed(conn: Mongoose) {
     if ((await Setting.countDocuments({ key: "site" }).maxTimeMS(3000)) === 0) {
       await Setting.create(seedSettings);
     }
+
+    // Written last so a failed bootstrap can be retried on next boot.
+    // Raw collection API: the marker key isn't part of the ISettings shape.
+    await Setting.collection.updateOne(
+      { key: "seed" },
+      { $setOnInsert: { key: "seed" } },
+      { upsert: true },
+    );
   } catch (err) {
     // Seeding is best-effort — never block a request because of it.
     console.error("[db] seed skipped:", (err as Error).message);

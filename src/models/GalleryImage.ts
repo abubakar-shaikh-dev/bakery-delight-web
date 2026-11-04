@@ -9,12 +9,14 @@ export interface IGalleryImage {
 
 const gallerySchema = new Schema<IGalleryImage>(
   {
-    url: { type: String, required: true },
+    url: { type: String, required: true, maxlength: 500 },
     caption: { type: String, default: "", maxlength: 120 },
     cloudinaryPublicId: { type: String, default: null },
   },
   { timestamps: true },
 );
+
+gallerySchema.index({ createdAt: -1 });
 
 const GalleryImage =
   models.GalleryImage ?? model<IGalleryImage>("GalleryImage", gallerySchema);

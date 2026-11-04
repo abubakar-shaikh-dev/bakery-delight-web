@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import {
@@ -59,7 +60,7 @@ export default function ImageUploader({
   aspect?: number;
   label?: string;
   initialUrl?: string;
-  onUploaded: (url: string) => void;
+  onUploaded: (url: string, publicId?: string | null) => void;
   hint?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -76,8 +77,8 @@ export default function ImageUploader({
       showToast("That file isn't an image.", "error");
       return;
     }
-    if (file.size > 12 * 1024 * 1024) {
-      showToast("Image is larger than 12 MB — pick a smaller one.", "error");
+    if (file.size > 8 * 1024 * 1024) {
+      showToast("Image is larger than 8 MB — pick a smaller one.", "error");
       return;
     }
     const reader = new FileReader();
@@ -86,6 +87,7 @@ export default function ImageUploader({
       setZoom(1);
       setCrop({ x: 0, y: 0 });
     };
+    reader.onerror = () => showToast("Couldn't read that file.", "error");
     reader.readAsDataURL(file);
   }, []);
 
@@ -100,9 +102,11 @@ export default function ImageUploader({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload failed.");
       setUrl(data.url);
-      onUploaded(data.url);
+      onUploaded(data.url, data.publicId ?? null);
       setSrc(null);
-      showToast("Photo uploaded to Cloudinary.");
+      showToast(
+        data.storage === "cloudinary" ? "Photo uploaded to Cloudinary." : "Photo saved.",
+      );
     } catch (err) {
       showToast((err as Error).message || "Upload failed.", "error");
     } finally {
@@ -127,12 +131,16 @@ export default function ImageUploader({
 
       {url ? (
         <div className="flex items-center gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={url}
-            alt="Uploaded"
-            className="h-24 w-24 rounded-xl object-cover ring-1 ring-cream-300"
-          />
+          <span className="relative block h-24 w-24 shrink-0 overflow-hidden rounded-xl ring-1 ring-cream-300">
+            <Image
+              src={url}
+              alt="Uploaded"
+              fill
+              sizes="96px"
+              className="object-cover"
+              unoptimized={url.startsWith("/api/images/")}
+            />
+          </span>
           <div className="flex flex-col gap-2">
             <button
               type="button"

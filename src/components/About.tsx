@@ -2,12 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { IconHeart } from "./icons";
 
-const stats = [
-  { value: "500+", label: "Happy Customers" },
-  { value: "100%", label: "Homemade" },
-  { value: "50+", label: "Unique Creations" },
-];
-
 export default function About() {
   return (
     <>
@@ -75,15 +69,6 @@ export default function About() {
             <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-stone-600">
               What began as a passion is now a growing community of cake lovers.
             </p>
-
-            <div className="mt-10 flex flex-wrap gap-x-12 gap-y-6">
-              {stats.map((s) => (
-                <div key={s.label}>
-                  <p className="text-[24px] font-semibold leading-none text-ink tabular-nums">{s.value}</p>
-                  <p className="mt-2 text-[13px] text-stone-500">{s.label}</p>
-                </div>
-              ))}
-            </div>
 
             <Link
               href="/about"

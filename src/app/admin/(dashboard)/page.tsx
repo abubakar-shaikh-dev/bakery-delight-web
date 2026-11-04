@@ -26,20 +26,79 @@ export default async function AdminDashboard() {
     );
   }
 
-  const [treatCount, pendingReviews, unreadMessages, galleryCount, reviewCount] =
+  let data: Awaited<ReturnType<typeof loadDashboardData>>;
+  try {
+    data = await loadDashboardData();
+  } catch (err) {
+    console.error("[dashboard]", (err as Error).message);
+    return (
+      <div className="rounded-2xl bg-white p-10 text-center ring-1 ring-cream-300">
+        <p className="font-display text-2xl font-bold text-ink">
+          The oven went cold mid-read
+        </p>
+        <p className="mt-2 text-[14px] text-stone-500">
+          The database dropped the connection. Refresh to try again.
+        </p>
+      </div>
+    );
+  }
+
+  return <DashboardContent {...data} />;
+}
+
+async function loadDashboardData() {
+  const [treatCount, pendingReviews, unreadMessages, galleryCount, reviewCount, recentMessages, recentReviews] =
     await Promise.all([
       Treat.countDocuments(),
       Review.countDocuments({ approved: false }),
       Message.countDocuments({ read: false }),
       GalleryImage.countDocuments(),
       Review.countDocuments({ approved: true }),
+      Message.find().sort({ createdAt: -1 }).limit(5).lean(),
+      Review.find().sort({ createdAt: -1 }).limit(5).lean(),
     ]);
 
-  const [recentMessages, recentReviews] = await Promise.all([
-    Message.find().sort({ createdAt: -1 }).limit(5).lean(),
-    Review.find().sort({ createdAt: -1 }).limit(5).lean(),
-  ]);
+  return {
+    treatCount,
+    pendingReviews,
+    unreadMessages,
+    galleryCount,
+    reviewCount,
+    recentMessages,
+    recentReviews,
+  };
+}
 
+function DashboardContent({
+  treatCount,
+  pendingReviews,
+  unreadMessages,
+  galleryCount,
+  reviewCount,
+  recentMessages,
+  recentReviews,
+}: {
+  treatCount: number;
+  pendingReviews: number;
+  unreadMessages: number;
+  galleryCount: number;
+  reviewCount: number;
+  recentMessages: Array<{
+    _id: unknown;
+    name: string;
+    email: string;
+    message: string;
+    read: boolean;
+    createdAt: Date | string;
+  }>;
+  recentReviews: Array<{
+    _id: unknown;
+    name: string;
+    rating: number;
+    text: string;
+    approved: boolean;
+  }>;
+}) {
   const stats = [
     {
       label: "Treats on the menu",

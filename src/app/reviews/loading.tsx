@@ -12,7 +12,7 @@ export default function LoadingReviews() {
         crumb="Reviews"
       />
       <section className="px-5 pb-24 sm:px-10 lg:px-[8.5rem]">
-        <ReviewGridSkeleton count={6} />
+        <ReviewGridSkeleton count={9} />
       </section>
     </>
   );

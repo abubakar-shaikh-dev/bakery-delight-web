@@ -87,10 +87,10 @@ export function getFeaturedTreats(limit = 5): Promise<TreatData[]> {
   return withDB<TreatData[]>(
     async () => {
       const docs = await Treat.find({ featured: true })
-        .sort({ createdAt: 1 })
+        .sort({ featured: -1, createdAt: 1 })
         .limit(limit)
         .lean();
-      if (!docs.length) return fallbackTreatList;
+      // DB is up but empty — that's the owner's real menu, not an outage.
       return docs.map(mapTreat);
     },
     fallbackTreatList,
@@ -126,7 +126,7 @@ export function getFeaturedReviews(limit = 3): Promise<ReviewData[]> {
         .sort({ createdAt: -1 })
         .limit(limit)
         .lean();
-      if (!docs.length) return fallbackReviewList;
+      // DB is up but empty — that's the real state, not an outage.
       return docs.map(mapReview);
     },
     fallbackReviewList,
@@ -146,7 +146,7 @@ export function getGallery(limit = 5): Promise<GalleryData[]> {
         .sort({ createdAt: -1 })
         .limit(limit)
         .lean();
-      if (!docs.length) return fallbackGallery;
+      // DB is up but empty — that's the real state, not an outage.
       return docs.map((d) => ({
         _id: String(d._id),
         url: d.url,
@@ -197,18 +197,20 @@ export function getTreatsPage(
   limit = 8,
   offset = 0,
 ): Promise<TreatsPage> {
-  const rx = new RegExp(escapeRegex(q), "i");
+  const term = q.trim().slice(0, 60);
+  const cat = category.trim().slice(0, 40);
+  const rx = new RegExp(escapeRegex(term), "i");
   return withDB<TreatsPage>(
     async () => {
       const filter: Record<string, unknown> = {};
-      if (q)
+      if (term)
         filter.$or = [
           { name: rx },
           { tagline: rx },
           { description: rx },
           { category: rx },
         ];
-      if (category) filter.category = category;
+      if (cat) filter.category = cat;
 
       const [docs, total, all] = await Promise.all([
         Treat.find(filter).sort({ featured: -1, createdAt: 1 }).skip(offset).limit(limit).lean(),
@@ -274,11 +276,8 @@ export function getReviewsPage(
         ]),
       ]);
       if (!docs.length && offset === 0) {
-        return {
-          reviews: fallbackReviewList,
-          total: fallbackReviewList.length,
-          avg: 5,
-        };
+        // DB is up with no approved reviews — show the real (empty) state.
+        return { reviews: [], total, avg: 0 };
       }
       return {
         reviews: docs.map(mapReview),

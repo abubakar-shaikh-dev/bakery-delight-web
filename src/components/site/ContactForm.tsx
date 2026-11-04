@@ -52,7 +52,7 @@ export default function ContactForm({ whatsappDigits }: { whatsappDigits: string
           Thank you for reaching out — we&rsquo;ll get back to you within a day.
           Need something urgent?{" "}
           <a
-            href={`https://wa.me/${whatsappDigits}`}
+            href={whatsappDigits ? `https://wa.me/${whatsappDigits}` : undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-wa underline decoration-wa/40 underline-offset-2"
@@ -77,11 +77,11 @@ export default function ContactForm({ whatsappDigits }: { whatsappDigits: string
         Send us a message
       </h3>
       <p className="mt-1 text-[13px] text-stone-600">
-        Tell us about your celebration — flavours, date, servings, anything!
+        Tell us about your celebration — flavours, date, servings, anything.
       </p>
 
       {error && (
-        <p className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep">
+        <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep">
           {error}
         </p>
       )}
@@ -138,7 +138,7 @@ export default function ContactForm({ whatsappDigits }: { whatsappDigits: string
           id="ct-msg"
           value={form.message}
           onChange={set("message")}
-          placeholder="Hi! I'd love a strawberry cream cake for 12 people on the 24th…"
+          placeholder="Hello — I'd love a strawberry cream cake for 12 people on the 24th…"
           rows={5}
           maxLength={2000}
           className={`${inputCls} resize-none`}

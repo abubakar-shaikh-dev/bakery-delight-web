@@ -1,21 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { safeJson } from "@/lib/api";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import { slugify } from "@/models/Treat";
 
-export async function GET() {
+async function GET_() {
   const denied = await requireAdmin();
   if (denied) return denied;
 
   const conn = await connectDB();
   if (!conn) return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
 
-  const categories = await Category.find().sort({ order: 1, name: 1 }).lean();
+  const categories = await Category.find().sort({ order: 1, name: 1 }).limit(200).lean();
   return NextResponse.json({ categories });
 }
 
-export async function POST(req: NextRequest) {
+async function POST_(req: NextRequest) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
@@ -44,4 +45,12 @@ export async function POST(req: NextRequest) {
   });
 
   return NextResponse.json({ category }, { status: 201 });
+}
+
+export function GET() {
+  return safeJson(() => GET_());
+}
+
+export function POST(req: NextRequest) {
+  return safeJson(() => POST_(req));
 }

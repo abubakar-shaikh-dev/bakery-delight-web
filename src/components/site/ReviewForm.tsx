@@ -82,7 +82,7 @@ export default function ReviewForm() {
       </p>
 
       {error && (
-        <p className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep">
+        <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep">
           {error}
         </p>
       )}
@@ -102,19 +102,25 @@ export default function ReviewForm() {
           />
         </div>
         <div>
-          <span className="field-label">
+          <span className="field-label" id="rv-rating-label">
             Your rating
           </span>
-          <div className="flex h-[46px] items-center gap-1.5">
+          <div
+            role="radiogroup"
+            aria-labelledby="rv-rating-label"
+            className="flex h-[46px] items-center gap-1.5"
+          >
             {[1, 2, 3, 4, 5].map((i) => (
               <button
                 key={i}
                 type="button"
+                role="radio"
+                aria-checked={i === rating}
                 aria-label={`${i} star${i > 1 ? "s" : ""}`}
                 onMouseEnter={() => setHover(i)}
                 onMouseLeave={() => setHover(0)}
                 onClick={() => setRating(i)}
-                className="transition-colors"
+                className="grid h-9 w-9 place-items-center rounded-full transition-colors"
               >
                 <Star
                   className={`h-7 w-7 transition-colors ${

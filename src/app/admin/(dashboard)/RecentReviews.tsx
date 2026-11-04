@@ -15,17 +15,19 @@ export default function RecentReviews({
 
   async function approve(id: string) {
     setBusyId(id);
-    const res = await fetch(`/api/admin/reviews/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ approved: true }),
-    });
-    setBusyId(null);
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/admin/reviews/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approved: true }),
+      });
+      if (!res.ok) throw new Error();
       showToast("Review approved — it's live on the site.");
       router.refresh();
-    } else {
+    } catch {
       showToast("Couldn't approve the review.", "error");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -70,7 +72,7 @@ export default function RecentReviews({
               onClick={() => approve(r._id)}
               disabled={busyId === r._id}
               aria-label={`Approve review by ${r.name}`}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-success-soft text-success transition-colors hover:bg-success hover:text-white disabled:opacity-50"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-success-soft text-success transition-colors hover:bg-success hover:text-white disabled:opacity-50"
             >
               <Check className="h-4 w-4" strokeWidth={2.2} />
             </button>

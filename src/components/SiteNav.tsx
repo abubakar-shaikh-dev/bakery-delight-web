@@ -31,19 +31,20 @@ export default function SiteNav({ variant = "overlay" }: { variant?: "overlay" |
     >
       <Link href="/" aria-label="Bakery Delight — home" className="shrink-0">
         <Image
-          src="/navbar-logo.png"
+          src="/navbar-logo.webp"
           alt="Bakery Delight"
-          width={2138}
-          height={736}
+          width={465}
+          height={160}
+          sizes="(min-width: 768px) 224px, 160px"
           className="h-10 w-auto md:h-14"
-          priority={variant === "overlay"}
+          priority
         />
       </Link>
 
       {/* Desktop pill nav (≥ lg) */}
       <nav
         aria-label="Primary"
-        className="hidden items-center gap-8 rounded-full bg-white/55 py-3.5 px-8 text-[15px] font-medium text-stone-800 shadow-xs backdrop-blur-md lg:flex"
+        className="hidden items-center gap-8 rounded-full bg-white/55 py-3.5 px-8 text-[15px] font-medium text-ink shadow-xs backdrop-blur-md lg:flex"
       >
         {NAV_LINKS.map((l) => {
           const active = isActive(l.href);
@@ -75,7 +76,7 @@ export default function SiteNav({ variant = "overlay" }: { variant?: "overlay" |
         <Link
           href="/treats"
           aria-label="Search treats"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-stone-800 transition-[background-color,color,transform] hover:text-berry-deep active:scale-95 sm:bg-white/70 sm:shadow-xs sm:backdrop-blur-md sm:hover:bg-white"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-[background-color,color,transform] hover:text-berry-deep active:scale-95 sm:bg-white/70 sm:shadow-xs sm:backdrop-blur-md sm:hover:bg-white"
         >
           <IconSearch />
         </Link>

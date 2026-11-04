@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   IconFacebook,
   IconInstagram,
@@ -42,10 +43,11 @@ export default function Footer({ settings }: { settings: SettingsData }) {
           {/* Brand */}
           <div>
             <Image
-              src="/navbar-logo.png"
+              src="/navbar-logo.webp"
               alt="Bakery Delight"
-              width={2138}
-              height={736}
+              width={465}
+              height={160}
+              sizes="192px"
               className="h-12 w-auto"
             />
             <p className="mt-2 pl-1 text-[12px] font-medium text-berry-deep">
@@ -76,9 +78,9 @@ export default function Footer({ settings }: { settings: SettingsData }) {
             <ul className="mt-5 space-y-3 text-[14px] text-stone-600">
               {quickLinks.map((l) => (
                 <li key={l.label}>
-                  <a href={l.href} className="transition-colors hover:text-berry">
+                  <Link href={l.href} className="transition-colors hover:text-berry">
                     {l.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
