@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — the single source of truth for color, type and motion.
+   Documented in DESIGN.md; new UI must use these, not raw hex values.
+--------------------------------------------------------------------------- */
+@theme {
+  /* Cream ramp — page surfaces and hairlines (warm, toward flour and butter) */
+  --color-cream-50: #fff8f3; /* inner-page background */
+  --color-cream-100: #fdf2ec; /* brand page background, nav strips */
+  --color-cream-200: #f6efe9; /* deeper wash, admin canvas */
+  --color-cream-300: #f0dfd4; /* default hairline border */
+  --color-cream-400: #e0cabd; /* strong border, disabled fills */
+
+  /* Blush ramp — the two pink section bands (About, Custom Cakes) */
+  --color-blush-100: #fceff0;
+  --color-blush-200: #f8e2e3;
+
+  /* Berry ramp — the one accent. Berry-deep is the small-text-safe shade. */
+  --color-berry: #cc4751; /* fills, buttons, large display accent (≥24px) */
+  --color-berry-deep: #b03a44; /* hover, links and small berry text */
+  --color-berry-200: #e8a0a6; /* berry text on cocoa surfaces */
+  --color-berry-soft: #fbe9ea; /* tint fills, icon chips */
+  --color-berry-ink: #7a2f35; /* handwritten notes, dark berry text */
+
+  /* Cocoa — dark surfaces (CTA band, admin sidebar, login panel) */
+  --color-cocoa: #2b160e;
+  --color-cocoa-2: #4a2a1a;
+  --color-cocoa-3: #1c0e07; /* scrim over the CTA photo */
+  --color-cocoa-cream: #f3d9c8; /* handwritten notes on cocoa */
+  --color-cocoa-muted: #d8c3b5; /* secondary text on cocoa */
+
+  /* Ink — primary text on light surfaces */
+  --color-ink: #1c0906;
+
+  /* Paper — taped note tags in the photo collages */
+  --color-paper: #f0e6d2;
+
+  /* Gold — ratings and "featured" only, never decoration */
+  --color-gold: #f5a623;
+  --color-gold-ink: #8a5c02;
+  --color-gold-soft: #faf1d3;
+
+  /* WhatsApp green — meaning only (order links), dark shade passes contrast */
+  --color-wa: #075e54;
+  --color-wa-deep: #0a6e61;
+  --color-wa-soft: #e8f7ee;
+
+  /* Success — approval states */
+  --color-success: #1a7f4b;
+  --color-success-soft: #e8f7ee;
+
+  /* Danger — destructive and error states (berry family, redder than accent) */
+  --color-danger: #9c333d;
+  --color-danger-soft: #fdecec;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-cormorant), serif;
+}
+
+.font-hand {
+  font-family: var(--font-caveat), cursive;
+}
+
+/* The handwritten margin note — the site's signature. Always slightly
+   rotated where it sits, always with room to breathe. */
+.eyebrow-hand {
+  font-family: var(--font-caveat), cursive;
+  font-weight: 600;
+  font-size: 1.375rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--color-berry-deep);
+}
+
+::selection {
+  background: var(--color-berry);
+  color: #fff;
+}
+
+/* Menu open: a short fade and rise from where it was tapped. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* One visible keyboard focus ring, everywhere. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-berry);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Shared component classes (DRY) — used by the site forms and admin panel.
+--------------------------------------------------------------------------- */
+@layer components {
+  .field-label {
+    @apply mb-1.5 block text-[13px] font-medium text-stone-600;
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-[14px] text-stone-700 outline-none transition-[border-color,box-shadow] placeholder:text-stone-400 focus:border-berry/50 focus:ring-4 focus:ring-berry/10;
+  }
+
+  .field-error {
+    @apply mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep disabled:opacity-60;
+  }
+
+  .btn-ghost {
+    @apply rounded-full px-5 py-2.5 text-[13px] font-medium text-stone-500 transition-colors hover:bg-stone-100;
+  }
+
+  .btn-danger {
+    @apply rounded-full bg-berry-deep px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#9c333d];
+  }
+
+  .icon-btn {
+    @apply grid h-9 w-9 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors;
+  }
+
+  .admin-card {
+    @apply rounded-2xl bg-white p-6 shadow-xs ring-1 ring-cream-300;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-xl bg-cream-300;
+  }
+
+  /* -------------------------------------------------------------------------
+     Full-screen navigation overlay (phones + tablets) — site/FullscreenMenu.tsx.
+     The site's one long-form motion (DESIGN.md → Motion): a circular wipe from
+     the menu button corner, then the content staggers in via opacity/transform.
+     Everything reverses on close; prefers-reduced-motion collapses all of it.
+  ------------------------------------------------------------------------- */
+  .nav-overlay {
+    --nav-wipe: calc(100% - 2.6rem) 2.9rem;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--color-cream-100);
+    clip-path: circle(0px at var(--nav-wipe));
+    visibility: hidden;
+    transition:
+      clip-path 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s 0.48s;
+  }
+
+  @media (min-width: 640px) {
+    .nav-overlay {
+      --nav-wipe: calc(100% - 3.9rem) 2.9rem;
+    }
+  }
+
+  .nav-overlay[data-open="true"] {
+    clip-path: circle(150% at var(--nav-wipe));
+    visibility: visible;
+    transition:
+      clip-path 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s 0s;
+  }
+
+  /* gentle depth while the wipe plays */
+  .nav-inner {
+    transform: scale(1.03) translateY(-6px);
+    transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .nav-overlay[data-open="true"] .nav-inner {
+    transform: none;
+  }
+
+  /* staggered entrance; inline transition-delay sequences the steps */
+  .nav-stagger {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.3s ease-out,
+      transform 0.3s ease-out;
+    transition-delay: 0s;
+  }
+
+  .nav-overlay[data-open="true"] .nav-stagger {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-overlay,
+    .nav-inner,
+    .nav-stagger {
+      transition-duration: 1ms !important;
+      transition-delay: 0s !important;
+    }
+  }
+}
