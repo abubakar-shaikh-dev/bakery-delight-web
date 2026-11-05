@@ -100,21 +100,31 @@ export function GalleryGridSkeleton({ count = 5 }: { count?: number }) {
   );
 }
 
-export function GalleryCardSkeleton({ feature = false }: { feature?: boolean }) {
+export function GalleryCardSkeleton({
+  shape = "square",
+}: {
+  shape?: "square" | "wide" | "tall";
+}) {
   return (
     <div
-      className={`skeleton aspect-square rounded-2xl ${feature ? "col-span-2 row-span-2" : ""}`}
+      className={`skeleton rounded-2xl ${
+        shape === "wide" ? "col-span-2" : shape === "tall" ? "row-span-2" : ""
+      }`}
     />
   );
 }
 
 export function GalleryBentoSkeleton({ count = 8 }: { count?: number }) {
+  const shapes = ["square", "square", "wide", "square", "tall", "square", "square", "wide"];
   return (
     <div>
       <div className="skeleton h-4 w-24" />
-      <div className="mt-6 grid grid-flow-dense grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+      <div className="mt-6 grid auto-rows-[calc((100vw-52px)/2)] grid-flow-dense grid-cols-2 gap-3 sm:auto-rows-[calc((100vw-96px)/2)] sm:gap-4 md:auto-rows-[calc((100vw-128px)/4)] md:grid-cols-4 lg:auto-rows-[calc((100vw-320px)/4)]">
         {Array.from({ length: count }).map((_, i) => (
-          <GalleryCardSkeleton key={i} feature={i % 7 === 0} />
+          <GalleryCardSkeleton
+            key={i}
+            shape={shapes[i % shapes.length] as "square" | "wide" | "tall"}
+          />
         ))}
       </div>
     </div>

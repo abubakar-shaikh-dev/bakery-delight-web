@@ -9,9 +9,10 @@ import type { GalleryData } from "@/lib/site-data";
 const PAGE = 12;
 
 /**
- * Bento gallery: every 7th photo is a 2×2 feature, the rest are 1×1, dense
- * flow keeps the wall hole-free. Photos open in a quiet lightbox (Esc, arrow
- * keys and buttons; no zoom-pan theatrics). Older pages stream in on scroll.
+ * Bento gallery: each photo's stored crop shape (square / wide / tall) drives
+ * its cell — 1×1, 2×1 or 1×2 — and dense flow keeps the wall hole-free in any
+ * mix. Photos open in a quiet lightbox (Esc, arrow keys and buttons; no
+ * zoom-pan theatrics). Older pages stream in on scroll.
  */
 export default function GalleryBrowser({
   initial,
@@ -100,9 +101,15 @@ export default function GalleryBrowser({
     };
   }, [viewing, images.length]);
 
-  const spanFor = (i: number) => (i % 7 === 0 ? "col-span-2 row-span-2" : "");
-  const sizesFor = (i: number) =>
-    i % 7 === 0
+  /* Bento vocabulary: the row height IS the column width, so "16:9" → 2×1,
+     "9:16" → 1×2 and squares stay square in any mix. Rows are explicit
+     (viewport minus page gutters and gaps) so cells never fight for height:
+     mobile 2 cols (px-5, gap-3), sm 2 cols (px-10, gap-4),
+     md/lg 4 cols (px-10 / px-[8.5rem], gap-4). */
+  const spanFor = (ratio: string) =>
+    ratio === "16:9" ? "col-span-2" : ratio === "9:16" ? "row-span-2" : "";
+  const sizesFor = (ratio: string) =>
+    ratio === "16:9"
       ? "(min-width:768px) 55vw, 100vw"
       : "(min-width:768px) 28vw, 46vw";
 
@@ -156,21 +163,21 @@ export default function GalleryBrowser({
       </p>
 
       {/* bento wall */}
-      <div className="mt-6 grid grid-flow-dense grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+      <div className="mt-6 grid auto-rows-[calc((100vw-52px)/2)] grid-flow-dense grid-cols-2 gap-3 sm:auto-rows-[calc((100vw-96px)/2)] sm:gap-4 md:auto-rows-[calc((100vw-128px)/4)] md:grid-cols-4 lg:auto-rows-[calc((100vw-320px)/4)]">
         {images.map((g, i) => (
           <button
             key={g._id}
             type="button"
             onClick={() => setViewing(i)}
             aria-label={g.caption ? `View photo: ${g.caption}` : "View photo"}
-            className={`group relative aspect-square cursor-zoom-in overflow-hidden rounded-2xl bg-white shadow-xs ring-1 ring-cream-300 transition-shadow duration-200 hover:shadow-md ${spanFor(i)}`}
+            className={`group relative cursor-zoom-in overflow-hidden rounded-2xl bg-white shadow-xs ring-1 ring-cream-300 transition-shadow duration-200 hover:shadow-md ${spanFor(g.ratio)}`}
           >
             {g.url && (
               <Image
                 src={g.url}
                 alt={g.caption || "From our gallery"}
                 fill
-                sizes={sizesFor(i)}
+                sizes={sizesFor(g.ratio)}
                 className="object-cover"
                 priority={i < 4}
               />
@@ -184,8 +191,9 @@ export default function GalleryBrowser({
         ))}
         {loadingMore && (
           <>
-            <GalleryCardSkeleton feature />
-            {[1, 2, 3].map((i) => (
+            <GalleryCardSkeleton shape="wide" />
+            <GalleryCardSkeleton shape="tall" />
+            {[1, 2].map((i) => (
               <GalleryCardSkeleton key={`m${i}`} />
             ))}
           </>

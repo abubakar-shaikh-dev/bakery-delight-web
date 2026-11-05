@@ -3,15 +3,23 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Check, LoaderCircle, Pencil, Trash2 } from "lucide-react";
-import ImageUploader from "./ImageUploader";
+import ImageUploader, { type RatioOption } from "./ImageUploader";
 import { ConfirmDrawer } from "./Drawer";
 import LoadError from "./LoadError";
 import { showToast } from "./AdminShell";
+
+/** The three shapes the bento wall holds without heavy cropping. */
+const GALLERY_RATIOS: RatioOption[] = [
+  { value: "1:1", label: "Square" },
+  { value: "16:9", label: "Wide" },
+  { value: "9:16", label: "Tall" },
+];
 
 interface GalleryItem {
   _id: string;
   url: string;
   caption: string;
+  ratio: string;
 }
 
 export default function GalleryManager() {
@@ -45,14 +53,19 @@ export default function GalleryManager() {
     load();
   }, [load]);
 
-  async function addPhoto(url: string, publicId?: string | null) {
+  async function addPhoto(url: string, publicId?: string | null, ratio?: string) {
     if (!url) return;
     setUploading(true);
     try {
       const res = await fetch("/api/admin/gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, caption: pendingCaption, cloudinaryPublicId: publicId ?? null }),
+        body: JSON.stringify({
+          url,
+          caption: pendingCaption,
+          ratio: ratio ?? "1:1",
+          cloudinaryPublicId: publicId ?? null,
+        }),
       });
       if (!res.ok) throw new Error("Save failed.");
       showToast("Photo added to the homepage gallery.");
@@ -112,13 +125,13 @@ export default function GalleryManager() {
           Add a photo to the homepage gallery
         </h3>
         <p className="mt-0.5 text-[13px] text-stone-600">
-          Square crops look best. The newest 5 photos appear on the homepage.
+          Pick a shape while cropping — square, wide or tall. The newest 5 photos appear on the homepage.
         </p>
         <div className="mt-4 grid items-end gap-4 sm:grid-cols-[auto_1fr]">
           <ImageUploader
-            aspect={1}
+            ratios={GALLERY_RATIOS}
             label="Choose & crop photo"
-            hint="Square · up to 8 MB"
+            hint="Square, wide or tall · up to 8 MB"
             onUploaded={addPhoto}
           />
           <div>

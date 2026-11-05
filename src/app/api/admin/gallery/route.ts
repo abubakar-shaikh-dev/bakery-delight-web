@@ -15,6 +15,8 @@ async function GET_() {
   return NextResponse.json({ images });
 }
 
+const GALLERY_RATIOS = ["1:1", "16:9", "9:16"];
+
 async function POST_(req: NextRequest) {
   const denied = await requireAdmin();
   if (denied) return denied;
@@ -29,6 +31,7 @@ async function POST_(req: NextRequest) {
   const image = await GalleryImage.create({
     url: body.url,
     caption: typeof body?.caption === "string" ? body.caption.trim().slice(0, 120) : "",
+    ratio: GALLERY_RATIOS.includes(body?.ratio) ? body.ratio : "1:1",
     cloudinaryPublicId: typeof body?.cloudinaryPublicId === "string" ? body.cloudinaryPublicId : null,
   });
 

@@ -172,5 +172,6 @@ export const fallbackReviews = seedReviews.map((r) => ({
 export const fallbackGallery = seedGallery.map((g, i) => ({
   ...g,
   _id: String(i),
+  ratio: "1:1",
 }));
 export const fallbackSettings = seedSettings;

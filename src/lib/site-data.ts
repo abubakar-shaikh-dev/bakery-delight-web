@@ -165,6 +165,7 @@ export interface GalleryData {
   _id: string;
   url: string;
   caption: string;
+  ratio: string;
 }
 
 export function getGallery(limit = 5): Promise<GalleryData[]> {
@@ -179,6 +180,7 @@ export function getGallery(limit = 5): Promise<GalleryData[]> {
         _id: String(d._id),
         url: d.url,
         caption: d.caption,
+        ratio: d.ratio ?? "1:1",
       }));
     },
     fallbackGallery,
@@ -206,6 +208,7 @@ export function getGalleryPage(
           _id: String(d._id),
           url: d.url,
           caption: d.caption,
+          ratio: d.ratio ?? "1:1",
         })),
         total,
       };

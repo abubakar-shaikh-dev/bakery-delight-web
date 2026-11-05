@@ -97,6 +97,7 @@ Patterns worth copying:
 - **Admin touch safety** — hover-revealed controls must be visible on touch: `opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100` (see GalleryManager delete).
 - **Empty states** — icon chip, display heading, one sentence, one action. Written in the bakery's voice ("New bakes are always in the oven").
 - **Loading** — `.skeleton` blocks mirroring exact layout; every page's `loading.tsx` matches its content layout so nothing jumps.
+- **Gallery bento** — upload-time crop shapes (Square 1:1, Wide 16:9, Tall 9:16) drive cell spans (1×1 / 2×1 / 1×2) on an explicit row-height grid; the cropper's ratio chips carry mini shape glyphs and match the wall's cell vocabulary. These three shapes are the set — anything else crops heavily and stays out.
 
 ## Voice
 
