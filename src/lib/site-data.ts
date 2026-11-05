@@ -185,6 +185,38 @@ export function getGallery(limit = 5): Promise<GalleryData[]> {
   );
 }
 
+export interface GalleryPage {
+  images: GalleryData[];
+  total: number;
+}
+
+/** Paginated gallery for the gallery page browser. */
+export function getGalleryPage(
+  limit = 12,
+  offset = 0,
+): Promise<GalleryPage> {
+  return withDB<GalleryPage>(
+    async () => {
+      const [docs, total] = await Promise.all([
+        GalleryImage.find().sort({ createdAt: -1 }).skip(offset).limit(limit).lean(),
+        GalleryImage.countDocuments(),
+      ]);
+      return {
+        images: docs.map((d) => ({
+          _id: String(d._id),
+          url: d.url,
+          caption: d.caption,
+        })),
+        total,
+      };
+    },
+    {
+      images: fallbackGallery.slice(offset, offset + limit),
+      total: fallbackGallery.length,
+    },
+  );
+}
+
 /* ------------------------- paginated public queries ------------------------ */
 
 export interface CategoryData {

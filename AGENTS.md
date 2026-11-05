@@ -33,9 +33,9 @@ Environment lives in `.env.local` (Mongo URI, Cloudinary keys, `ADMIN_EMAIL`, `A
 
 ### Routes
 
-- **Public pages** (`src/app/`): `/` (home), `/about`, `/treats`, `/reviews`, `/contact`. All use `export const dynamic = "force-dynamic"` because content is DB-backed. Each has a `loading.tsx` skeleton that mirrors the page's exact layout — keep them in sync when you change a page's layout.
+- **Public pages** (`src/app/`): `/` (home), `/treats`, `/gallery`, `/about`, `/reviews`, `/contact`. All use `export const dynamic = "force-dynamic"` because content is DB-backed. Each has a `loading.tsx` skeleton that mirrors the page's exact layout — keep them in sync when you change a page's layout.
 - **Admin** (`src/app/admin/`): `admin/layout.tsx` is a pass-through; the `(dashboard)` route group layout enforces auth and renders `AdminShell`. `/admin/login` sits outside the group.
-- **API** (`src/app/api/`): public `treats`, `reviews`, `contact`, `images/[id]`; admin CRUD under `api/admin/*`; auth under `api/auth/*`.
+- **API** (`src/app/api/`): public `treats`, `reviews`, `gallery`, `contact`, `images/[id]`; admin CRUD under `api/admin/*`; auth under `api/auth/*`.
 
 ### Data access
 

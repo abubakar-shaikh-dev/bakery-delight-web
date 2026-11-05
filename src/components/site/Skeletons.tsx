@@ -100,6 +100,27 @@ export function GalleryGridSkeleton({ count = 5 }: { count?: number }) {
   );
 }
 
+export function GalleryCardSkeleton({ feature = false }: { feature?: boolean }) {
+  return (
+    <div
+      className={`skeleton aspect-square rounded-2xl ${feature ? "col-span-2 row-span-2" : ""}`}
+    />
+  );
+}
+
+export function GalleryBentoSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <div>
+      <div className="skeleton h-4 w-24" />
+      <div className="mt-6 grid grid-flow-dense grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        {Array.from({ length: count }).map((_, i) => (
+          <GalleryCardSkeleton key={i} feature={i % 7 === 0} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TreatsLandingSkeleton() {
   return (
     <section className="px-5 pt-10 pb-24 md:px-10 lg:px-[8.5rem]">

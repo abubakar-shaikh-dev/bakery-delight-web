@@ -10,6 +10,7 @@ import { IconArrowRight, IconCupcake } from "../icons";
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Treats", href: "/treats" },
+  { label: "Gallery", href: "/gallery" },
   { label: "About", href: "/about" },
   { label: "Reviews", href: "/reviews" },
   { label: "Contact", href: "/contact" },
