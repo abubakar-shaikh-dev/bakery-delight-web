@@ -187,15 +187,15 @@ export default function AdminShell({
                         : "text-white/65 hover:bg-white/8 hover:text-white"
                     } ${collapsed ? "justify-center" : ""}`}
                   >
-                    <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
+                    <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
                     {!collapsed && <span>{item.label}</span>}
                     {item.badge && unread > 0 && !collapsed && (
-                      <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-cocoa">
+                      <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-berry px-1.5 text-[11px] font-semibold text-white">
                         {unread}
                       </span>
                     )}
                     {item.badge && unread > 0 && collapsed && (
-                      <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-gold" />
+                      <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-berry" />
                     )}
                   </Link>
                 </li>
@@ -237,7 +237,7 @@ export default function AdminShell({
             collapsed ? "justify-center" : ""
           }`}
         >
-          <Globe className="h-[18px] w-[18px]" strokeWidth={1.9} />
+          <Globe className="h-[18px] w-[18px]" strokeWidth={1.8} />
           {!collapsed && <span>View site</span>}
         </a>
         <button
@@ -247,7 +247,7 @@ export default function AdminShell({
             collapsed ? "justify-center" : ""
           }`}
         >
-          <LogOut className="h-[18px] w-[18px]" strokeWidth={1.9} />
+          <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
           {!collapsed && <span>{loggingOut ? "Signing out…" : "Sign out"}</span>}
         </button>
       </div>
@@ -329,7 +329,7 @@ export default function AdminShell({
               target="_blank"
               className="hidden items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-600 shadow-xs ring-1 ring-cream-300/70 transition-colors hover:text-berry sm:flex"
             >
-              <Globe className="h-3.5 w-3.5" strokeWidth={1.9} />
+              <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
               View site
             </a>
             <span className="flex items-center gap-2.5 rounded-full bg-white py-1.5 pl-1.5 pr-4 shadow-xs ring-1 ring-cream-300/70">

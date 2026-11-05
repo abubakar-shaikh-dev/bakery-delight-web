@@ -22,7 +22,7 @@ export default function CtaBand() {
         <p className="pr-6">Life is</p>
         <p className="pr-1">Sweeter</p>
         <p className="pr-7">with Cake</p>
-        <IconHeart className="ml-1 h-4 w-4 text-cocoa-cream" strokeWidth={2} />
+        <IconHeart className="ml-1 h-4 w-4 text-cocoa-cream" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-3xl px-5 py-24 text-center lg:py-28">
@@ -35,7 +35,7 @@ export default function CtaBand() {
         <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/contact"
-            className="flex items-center gap-2 rounded-full bg-berry px-7 py-3.5 text-[15px] font-medium text-white shadow-lg shadow-black/20 transition-colors hover:bg-berry-deep"
+            className="flex items-center gap-2 rounded-full bg-berry px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-berry-deep"
           >
             Order Now
             <IconArrowRight />

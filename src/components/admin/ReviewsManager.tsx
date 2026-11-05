@@ -182,7 +182,7 @@ export default function ReviewsManager() {
           onClick={() => setForm({ ...emptyForm })}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
         >
-          <Plus className="h-4 w-4" strokeWidth={2.2} />
+          <Plus className="h-4 w-4" strokeWidth={2} />
           Add review
         </button>
       </div>
@@ -198,7 +198,7 @@ export default function ReviewsManager() {
       ) : reviews.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
-            <Star className="h-7 w-7" strokeWidth={1.6} />
+            <Star className="h-7 w-7" strokeWidth={1.8} />
           </span>
           <h3 className="mt-4 font-display text-xl font-bold text-ink">
             No reviews here yet
@@ -269,7 +269,7 @@ export default function ReviewsManager() {
                       {busyId === r._id ? (
                         <LoaderCircle className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Check className="h-4 w-4" strokeWidth={2.2} />
+                        <Check className="h-4 w-4" strokeWidth={2} />
                       )}
                     </button>
                   )}

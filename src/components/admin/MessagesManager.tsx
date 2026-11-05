@@ -131,7 +131,7 @@ export default function MessagesManager() {
       ) : messages.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
-            <MailOpen className="h-7 w-7" strokeWidth={1.6} />
+            <MailOpen className="h-7 w-7" strokeWidth={1.8} />
           </span>
           <h3 className="mt-4 font-display text-xl font-bold text-ink">
             {filter === "unread" ? "Inbox empty" : "No messages yet"}
@@ -173,7 +173,7 @@ export default function MessagesManager() {
                     <span className="flex flex-wrap items-center gap-2">
                       <span className="text-[14px] font-semibold text-ink">{m.name}</span>
                       {!m.read && (
-                        <span className="rounded-full bg-berry px-2 py-0.5 text-[11px] font-bold uppercase text-white">
+                        <span className="rounded-full bg-berry-soft px-2 py-0.5 text-[11px] font-semibold text-berry-deep">
                           New
                         </span>
                       )}

@@ -12,7 +12,7 @@ function MobileNote() {
       <p className="pr-1">than</p>
       <p className="pr-2">Cakes</p>
       <p className="pr-0">It&rsquo;s Love</p>
-      <IconHeart className="mt-1 ml-auto mr-6 h-4 w-4" strokeWidth={1.8} />
+      <IconHeart className="mt-1 ml-auto mr-6 h-4 w-4" />
       <svg className="ml-auto mr-1 mt-0.5 h-2.5 w-[72px]" viewBox="0 0 86 12" fill="none">
         <path d="M2 9 C 22 12.5, 52 10, 84 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
@@ -20,7 +20,11 @@ function MobileNote() {
   );
 }
 
-export default function Hero() {
+export default function Hero({
+  reviewStats,
+}: {
+  reviewStats: { total: number; avg: number };
+}) {
   return (
     <section
       id="top"
@@ -101,15 +105,24 @@ export default function Hero() {
             </Link>
           </div>
 
-          <Link
-            href="/reviews"
-            className="mt-8 inline-flex items-center gap-3"
-          >
-            <StarRating rating={5} className="h-4 w-4" />
-            <span className="text-sm text-stone-600 [text-shadow:0_1px_10px_rgba(253,242,236,0.9)] sm:[text-shadow:none]">
+          {reviewStats.avg > 0 ? (
+            <Link
+              href="/reviews"
+              className="mt-8 inline-flex items-center gap-3"
+            >
+              <StarRating rating={Math.round(reviewStats.avg)} className="h-4 w-4" />
+              <span className="text-sm tabular-nums text-stone-600 [text-shadow:0_1px_10px_rgba(253,242,236,0.9)] sm:[text-shadow:none]">
+                {reviewStats.avg.toFixed(1)} from real orders
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/reviews"
+              className="mt-8 inline-flex text-sm text-stone-600 [text-shadow:0_1px_10px_rgba(253,242,236,0.9)] sm:[text-shadow:none]"
+            >
               Read customer reviews
-            </span>
-          </Link>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -137,7 +150,7 @@ export default function Hero() {
             <br />
             happier people
           </p>
-          <IconHeart className="mt-2 ml-0.5 h-4 w-4" strokeWidth={1.6} />
+          <IconHeart className="mt-2 ml-0.5 h-4 w-4" />
         </div>
       </div>
     </section>

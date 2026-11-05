@@ -53,7 +53,7 @@ export default function ReviewForm() {
     return (
       <div className="rounded-2xl bg-white p-8 text-center shadow-xs ring-1 ring-cream-300">
         <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-berry-soft text-berry-deep">
-          <IconHeart className="h-6 w-6" strokeWidth={1.8} />
+          <IconHeart className="h-6 w-6" />
         </span>
         <h3 className="font-display text-2xl font-bold text-ink">
           Thank you, {name.split(" ")[0]}

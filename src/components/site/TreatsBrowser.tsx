@@ -174,7 +174,7 @@ export default function TreatsBrowser({
       ) : treats.length === 0 && loadError ? (
         <div className="mt-10 flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
-            <SearchX className="h-7 w-7" strokeWidth={1.6} />
+            <SearchX className="h-7 w-7" strokeWidth={1.8} />
           </span>
           <h3 className="mt-4 font-display text-2xl font-bold text-ink">
             The menu didn&rsquo;t load
@@ -197,7 +197,7 @@ export default function TreatsBrowser({
       ) : treats.length === 0 ? (
         <div className="mt-10 flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
-            {q ? <SearchX className="h-7 w-7" strokeWidth={1.6} /> : <Croissant className="h-7 w-7" strokeWidth={1.6} />}
+            {q ? <SearchX className="h-7 w-7" strokeWidth={1.8} /> : <Croissant className="h-7 w-7" strokeWidth={1.8} />}
           </span>
           <h3 className="mt-4 font-display text-2xl font-bold text-ink">
             {q ? `Nothing for “${q}” yet` : "No treats in this category yet"}

@@ -138,6 +138,29 @@ export function getFeaturedReviews(limit = 3): Promise<ReviewData[]> {
   );
 }
 
+/**
+ * Hero summary — the homepage shows one honest figure about reviews or,
+ * when there are none yet, no rating at all.
+ */
+export function getReviewsSummary(): Promise<{ total: number; avg: number }> {
+  return withDB<{ total: number; avg: number }>(
+    async () => {
+      const [total, agg] = await Promise.all([
+        Review.countDocuments({ approved: true }),
+        Review.aggregate<{ _id: null; avg: number }>([
+          { $match: { approved: true } },
+          { $group: { _id: null, avg: { $avg: "$rating" } } },
+        ]),
+      ]);
+      return {
+        total,
+        avg: total === 0 ? 0 : Math.round((agg[0]?.avg ?? 0) * 10) / 10,
+      };
+    },
+    { total: fallbackReviewList.length, avg: 5 },
+  );
+}
+
 export interface GalleryData {
   _id: string;
   url: string;

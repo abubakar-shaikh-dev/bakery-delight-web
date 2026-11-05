@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, KeyRound, LoaderCircle, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, LoaderCircle, Lock, Mail, ShieldCheck } from "lucide-react";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -44,7 +44,7 @@ export default function LoginForm() {
       {/* mobile brand */}
       <div className="mb-8 flex flex-col items-center text-center lg:hidden">
         <span className="mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-berry">
-          <KeyRound className="h-6 w-6 text-white" strokeWidth={1.8} />
+          <ShieldCheck className="h-6 w-6 text-white" strokeWidth={1.8} />
         </span>
         <h1 className="font-display text-3xl font-bold text-ink">
           Bakery Delight

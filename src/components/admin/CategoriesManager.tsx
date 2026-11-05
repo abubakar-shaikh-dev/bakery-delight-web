@@ -161,7 +161,7 @@ export default function CategoriesManager() {
               : "border-cream-300 bg-white text-stone-400 hover:border-berry/40 hover:text-stone-600"
           }`}
         >
-          <i.Icon className="h-4.5 w-4.5" strokeWidth={1.7} />
+          <i.Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
         </button>
       ))}
     </div>
@@ -198,7 +198,7 @@ export default function CategoriesManager() {
               {adding ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" />
               ) : (
-                <Plus className="h-4 w-4" strokeWidth={2.2} />
+                <Plus className="h-4 w-4" strokeWidth={2} />
               )}
               Add category
             </button>
@@ -264,7 +264,7 @@ export default function CategoriesManager() {
                         {busyId === c._id ? (
                           <LoaderCircle className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Check className="h-4 w-4" strokeWidth={2.2} />
+                          <Check className="h-4 w-4" strokeWidth={2} />
                         )}
                         Save
                       </button>
@@ -279,7 +279,7 @@ export default function CategoriesManager() {
                         aria-label={`Move ${c.name} up`}
                         className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
                       >
-                        <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.2} />
+                        <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} />
                       </button>
                       <button
                         onClick={() => move(c, 1)}
@@ -287,7 +287,7 @@ export default function CategoriesManager() {
                         aria-label={`Move ${c.name} down`}
                         className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
                       >
-                        <ArrowDown className="h-3.5 w-3.5" strokeWidth={2.2} />
+                        <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
                       </button>
                     </div>
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-berry-soft text-berry-deep">

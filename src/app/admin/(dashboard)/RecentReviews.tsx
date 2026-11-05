@@ -74,7 +74,7 @@ export default function RecentReviews({
               aria-label={`Approve review by ${r.name}`}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-success-soft text-success transition-colors hover:bg-success hover:text-white disabled:opacity-50"
             >
-              <Check className="h-4 w-4" strokeWidth={2.2} />
+              <Check className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
         </li>

@@ -19,9 +19,10 @@ export default async function SiteLayout({
   return (
     <>
       {/* Route-progress bar in the brand berry; sits above the sticky nav,
-          below drawers and toasts */}
+          below drawers and toasts. The lib interpolates the color into a
+          stylesheet rule, so the token var resolves here. */}
       <NextTopLoader
-        color="#cc4751"
+        color="var(--color-berry)"
         height={3}
         showSpinner={false}
         shadow={false}

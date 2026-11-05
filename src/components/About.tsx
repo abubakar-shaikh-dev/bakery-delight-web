@@ -48,7 +48,7 @@ export default function About() {
               Happiness
               <br />
               is Homemade{" "}
-              <IconHeart className="mt-[-0.25rem] inline-block h-4 w-4 text-berry-ink" strokeWidth={2} />
+              <IconHeart className="mt-[-0.25rem] inline-block h-4 w-4 text-berry-ink" />
             </div>
           </div>
 
@@ -89,7 +89,7 @@ export default function About() {
           <p className="pr-1">Ingredients</p>
           <p className="pr-4">Bigger</p>
           <p className="pr-0">Happiness</p>
-          <IconHeart className="mt-1 ml-auto mr-2 h-4 w-4 text-berry-ink" strokeWidth={2} />
+          <IconHeart className="mt-1 ml-auto mr-2 h-4 w-4 text-berry-ink" />
         </div>
       </section>
     </>

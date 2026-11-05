@@ -243,7 +243,7 @@ export default function ImageUploader({
                 {working ? (
                   <LoaderCircle className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Crop className="h-4 w-4" strokeWidth={1.9} />
+                  <Crop className="h-4 w-4" strokeWidth={1.8} />
                 )}
                 {working ? "Uploading…" : "Crop & upload"}
               </button>

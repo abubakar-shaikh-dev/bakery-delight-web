@@ -102,7 +102,7 @@ Patterns worth copying:
 
 - Say what it is, plainly, in the bakery's voice: "Fresh from the oven", "Every review here comes from a real order".
 - No exclamation marks. No trailing periods on headlines, labels or buttons. No greeting headlines — name the context (the date, the page) instead.
-- No hype words, no unverified claims. Numbers the owner hasn't confirmed (500+ customers, 50+ creations) live only on the About page where they read as the bakery's own story — they were flagged during the unslop pass and should be confirmed or removed.
+- No hype words, no unverified claims. The About-page figures (500+ customers, 50+ creations) were confirmed real by the owner — keep them only there, where they read as the bakery's own story.
 - Mock/placeholder content must look real (real names, plausible prices like ₹699) — never `123` or `Test`.
 - A change states its comparison ("N treats", "N reviews") — no bare decorations.
 

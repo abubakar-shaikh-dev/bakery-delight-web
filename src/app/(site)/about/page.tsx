@@ -19,7 +19,7 @@ const values = [
     text: "Only the best, always fresh — real butter, farm eggs and fruit in season.",
   },
   {
-    icon: <IconHeart className="h-7 w-7" strokeWidth={1.7} />,
+    icon: <IconHeart className="h-7 w-7" />,
     title: "Made with Love",
     text: "Every cake tells a story. Yours gets our full attention, start to finish.",
   },

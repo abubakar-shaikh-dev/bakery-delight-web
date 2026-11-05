@@ -186,7 +186,7 @@ export default function TreatsManager() {
           onClick={() => setForm({ ...emptyForm })}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
         >
-          <Plus className="h-4 w-4" strokeWidth={2.2} />
+          <Plus className="h-4 w-4" strokeWidth={2} />
           Add treat
         </button>
       </div>
@@ -203,7 +203,7 @@ export default function TreatsManager() {
       ) : treats.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
-            <CakeSlice className="h-7 w-7" strokeWidth={1.6} />
+            <CakeSlice className="h-7 w-7" strokeWidth={1.8} />
           </span>
           <h3 className="mt-4 font-display text-xl font-bold text-ink">
             {q ? "No treats match that search" : "The menu is empty"}

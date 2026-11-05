@@ -63,8 +63,8 @@ export default function ReviewsBrowser({
             {initial.avg || "—"}
           </p>
           <div className="text-left">
-            <StarRating rating={Math.round(initial.avg)} />
-            <p className="mt-1 text-[12px] text-stone-500 tabular-nums">
+            {total > 0 && <StarRating rating={Math.round(initial.avg)} />}
+            <p className={`text-[12px] text-stone-500 tabular-nums ${total > 0 ? "mt-1" : ""}`}>
               {total} review{total === 1 ? "" : "s"}
             </p>
           </div>

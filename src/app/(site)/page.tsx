@@ -11,6 +11,7 @@ import {
   getFeaturedReviews,
   getFeaturedTreats,
   getGallery,
+  getReviewsSummary,
   getSettings,
 } from "@/lib/site-data";
 import {
@@ -38,11 +39,14 @@ async function GallerySection({ instagramUrl }: { instagramUrl: string }) {
 }
 
 export default async function Home() {
-  const settings = await getSettings();
+  const [settings, reviewStats] = await Promise.all([
+    getSettings(),
+    getReviewsSummary(),
+  ]);
 
   return (
     <>
-      <Hero />
+      <Hero reviewStats={reviewStats} />
       <Features />
 
       <Suspense fallback={<TreatsLandingSkeleton />}>
