@@ -79,7 +79,7 @@ Nested radii add up (inner = outer − padding): controls 8–10 (`rounded-lg/xl
 ## Motion
 
 - One easing (default `ease-out`), short durations: 150–200ms hovers, 200–300ms panels/menus.
-- Hover = color, border or shadow change; press = tiny scale down; menus fade and rise 4px (`animate-[menu-in_180ms_ease-out]`).
+- Hover = color, border or shadow change; press = tiny scale down; menus fade and rise 4px (`animate-[menu-in_180ms_ease-out]`); bottom sheets (the crop dialog) rise 24px (`animate-[sheet-in_240ms_ease-out]`). Custom overlays inside transformed ancestors (vaul sheets) must portal to `document.body` — a transformed ancestor re-anchors `position: fixed` and clips the overlay.
 - The full-screen nav (phones/tablets, `site/FullscreenMenu.tsx`) is the one sanctioned long-form motion: a `clip-path` circle wipe (~480ms) from the menu button plus staggered opacity/transform steps. `clip-path` joins the named transitions for this component only — no loops, no layout properties, `prefers-reduced-motion` collapses it.
 - Named transitions only: `transition-colors`, `transition-shadow`, `transition-[border-color,box-shadow]`, `transition-[opacity,transform]`. **Never** `transition-all`, never animate width/height/margin/gap.
 - No looping decoration: no `animate-bounce`, no SMIL `<animate>`, no hover lifts or `hover:scale` on cards, no image zooms. The only allowed loops are `animate-pulse` (skeletons) and `animate-spin` (spinners).
