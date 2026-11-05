@@ -5,10 +5,8 @@ import type { TreatData } from "@/lib/site-data";
 
 export default function Treats({
   treats,
-  whatsappDigits,
 }: {
   treats: TreatData[];
-  whatsappDigits: string;
 }) {
   return (
     <section id="treats" className="px-5 pt-10 pb-24 md:px-10 lg:px-[8.5rem]">

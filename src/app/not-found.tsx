@@ -10,7 +10,7 @@ export default async function NotFound() {
 
   return (
     <>
-      <SiteNav variant="solid" />
+      <SiteNav />
       <main className="bg-cream-50">
         <section className="flex min-h-[60vh] flex-col items-center justify-center px-5 py-24 text-center sm:px-10">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">

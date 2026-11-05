@@ -57,6 +57,11 @@
 
 html {
   scroll-behavior: smooth;
+  /* Clip stray horizontal overflow at the root. `clip` (unlike `hidden`)
+     keeps the viewport as the vertical scroller, so the sticky nav and
+     window scroll events are unaffected. Guards against an intermittent
+     scrollable-overflow miscalculation around the streamed treats grid. */
+  overflow-x: clip;
 }
 
 body {

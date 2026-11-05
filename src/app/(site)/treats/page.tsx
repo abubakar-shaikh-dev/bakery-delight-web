@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/site/PageHeader";
 import TreatsBrowser from "@/components/site/TreatsBrowser";
-import SiteNav from "@/components/SiteNav";
-import Footer from "@/components/Footer";
 import { getSettings, getTreatsPage } from "@/lib/site-data";
 
 export const metadata: Metadata = {
@@ -26,7 +24,6 @@ export default async function TreatsPage({
 
   return (
     <>
-      <SiteNav variant="solid" />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="Fresh from the oven"
@@ -45,7 +42,6 @@ export default async function TreatsPage({
           />
         </section>
       </main>
-      <Footer settings={settings} />
     </>
   );
 }

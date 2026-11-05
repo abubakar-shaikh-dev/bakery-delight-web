@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import PageHeader from "@/components/site/PageHeader";
-import SiteNav from "@/components/SiteNav";
-import Footer from "@/components/Footer";
 import CtaBand from "@/components/CtaBand";
 import { IconGift, IconHeart, IconLeaf, IconHome } from "@/components/icons";
-import { getSettings } from "@/lib/site-data";
 
 export const metadata: Metadata = {
   title: "About Us — Bakery Delight",
@@ -45,11 +42,9 @@ const stats = [
 ];
 
 export default async function AboutPage() {
-  const settings = await getSettings();
 
   return (
     <>
-      <SiteNav variant="solid" />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="A little about us"
@@ -166,7 +161,6 @@ export default async function AboutPage() {
           <CtaBand />
         </div>
       </main>
-      <Footer settings={settings} />
     </>
   );
 }

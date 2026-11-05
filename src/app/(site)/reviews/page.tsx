@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/site/PageHeader";
 import ReviewsBrowser from "@/components/site/ReviewsBrowser";
 import ReviewForm from "@/components/site/ReviewForm";
-import SiteNav from "@/components/SiteNav";
-import Footer from "@/components/Footer";
-import { getReviewsPage, getSettings } from "@/lib/site-data";
+import { getReviewsPage } from "@/lib/site-data";
 
 export const metadata: Metadata = {
   title: "Customer Reviews",
@@ -14,11 +12,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ReviewsPage() {
-  const [settings, page] = await Promise.all([getSettings(), getReviewsPage(9, 0)]);
+  const page = await getReviewsPage(9, 0);
 
   return (
     <>
-      <SiteNav variant="solid" />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="Straight from the heart"
@@ -30,7 +27,6 @@ export default async function ReviewsPage() {
 
         <section className="px-5 pb-24 sm:px-10 lg:px-[8.5rem]">
           <ReviewsBrowser initial={page} />
-
 
           {/* submit */}
           <div className="mx-auto mt-20 max-w-2xl">
@@ -44,7 +40,6 @@ export default async function ReviewsPage() {
           </div>
         </section>
       </main>
-      <Footer settings={settings} />
     </>
   );
 }

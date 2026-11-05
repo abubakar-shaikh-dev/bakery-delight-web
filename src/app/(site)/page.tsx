@@ -1,10 +1,8 @@
 import { Suspense } from "react";
 import About from "@/components/About";
-import BackToTop from "@/components/BackToTop";
 import CtaBand from "@/components/CtaBand";
 import CustomCakes from "@/components/CustomCakes";
 import Features from "@/components/Features";
-import Footer from "@/components/Footer";
 import Gallery from "@/components/Gallery";
 import Hero from "@/components/Hero";
 import Testimonials from "@/components/Testimonials";
@@ -24,9 +22,9 @@ import {
 export const dynamic = "force-dynamic";
 
 /* Streamed, DB-backed sections — each renders behind its own exact-layout skeleton. */
-async function TreatsSection({ whatsappDigits }: { whatsappDigits: string }) {
+async function TreatsSection() {
   const treats = await getFeaturedTreats(5);
-  return <Treats treats={treats} whatsappDigits={whatsappDigits} />;
+  return <Treats treats={treats} />;
 }
 
 async function TestimonialsSection() {
@@ -48,7 +46,7 @@ export default async function Home() {
       <Features />
 
       <Suspense fallback={<TreatsLandingSkeleton />}>
-        <TreatsSection whatsappDigits={settings.whatsappDigits} />
+        <TreatsSection />
       </Suspense>
 
       <About />
@@ -63,8 +61,6 @@ export default async function Home() {
       </Suspense>
 
       <CtaBand />
-      <Footer settings={settings} />
-      <BackToTop />
     </>
   );
 }

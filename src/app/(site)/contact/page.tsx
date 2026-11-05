@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/site/PageHeader";
-import SiteNav from "@/components/SiteNav";
-import Footer from "@/components/Footer";
 import ContactForm from "@/components/site/ContactForm";
 import {
   IconFacebook,
@@ -43,7 +41,6 @@ export default async function ContactPage() {
 
   return (
     <>
-      <SiteNav variant="solid" />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="We'd love to hear from you"
@@ -157,7 +154,6 @@ export default async function ContactPage() {
           </div>
         </section>
       </main>
-      <Footer settings={settings} />
     </>
   );
 }

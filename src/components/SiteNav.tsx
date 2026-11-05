@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,29 +8,61 @@ import FullscreenMenu, { NAV_LINKS } from "./site/FullscreenMenu";
 import { IconArrowRight, IconSearch } from "./icons";
 
 /**
- * Site navigation.
- * variant "overlay": floats over the hero photo (homepage) — solid strip on phones.
- * variant "solid":   cream bar for inner pages.
+ * Site navigation — rendered once in the (site) layout and kept mounted
+ * across every route change, so navigating never makes it disappear.
  *
- * Breakpoints (DESIGN.md → Responsive rules):
+ * Behaviour:
+ * - homepage: floats over the hero photo (the hero slides underneath via
+ *   its negative top margin); transparent on desktop until the page
+ *   scrolls, then settles into the cream strip with a soft shadow.
+ * - inner pages: cream strip with hairline border; gains a shadow once
+ *   scrolled.
+ *
+ * Only background-color/box-shadow/border-color transition (DESIGN.md
+ * named transitions); min-height is fixed so the sticky bar never shifts
+ * layout. Breakpoints (DESIGN.md → Responsive rules):
  *   mobile (≤ 640)    logo · search · menu button → full-screen menu
  *   tablet (641–1023) logo · search · "Order Now" · menu button → full-screen menu
  *   desktop (≥ 1024)  logo · frosted pill nav
  */
-export default function SiteNav({ variant = "overlay" }: { variant?: "overlay" | "solid" }) {
+export default function SiteNav() {
   const pathname = usePathname();
+  const isHome = pathname === "/";
+  const [scrolled, setScrolled] = useState(false);
+
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  // rAF-throttled scroll state; re-evaluated per navigation since Next
+  // resets scroll to the top. State changes are never synchronous here.
+  useEffect(() => {
+    let raf = requestAnimationFrame(() => setScrolled(window.scrollY > 12));
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setScrolled(window.scrollY > 12));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [pathname]);
+
+  const surface = isHome
+    ? scrolled
+      ? "bg-cream-100 shadow-sm border-b border-cream-300"
+      : "max-sm:bg-cream-100 border-b border-transparent"
+    : `bg-cream-100 border-b border-cream-300${scrolled ? " shadow-sm" : ""}`;
+
   return (
     <header
-      className={
-        variant === "solid"
-          ? "relative z-30 flex items-center justify-between gap-4 border-b border-cream-300 bg-cream-100 px-5 py-4 sm:px-10 lg:px-[8.5rem]"
-          : "relative z-30 flex items-center justify-between gap-4 px-5 pt-6 max-sm:pb-5 sm:bg-transparent md:px-10 lg:px-[8.5rem] max-sm:bg-cream-100"
-      }
+      className={`sticky top-0 z-40 flex min-h-[72px] w-full items-center justify-between gap-4 px-5 md:min-h-[88px] md:px-10 lg:px-[8.5rem] transition-[background-color,box-shadow,border-color] duration-300 ${surface}`}
     >
-      <Link href="/" aria-label="Bakery Delight — home" className="shrink-0">
+      <Link
+        href="/"
+        aria-label="Bakery Delight — home"
+        className="shrink-0 py-2"
+      >
         <Image
           src="/navbar-logo.webp"
           alt="Bakery Delight"

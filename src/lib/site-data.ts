@@ -5,6 +5,7 @@ import {
   fallbackSettings,
   fallbackTreats,
 } from "@/lib/seed";
+import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import { escapeRegex } from "@/lib/utils";
 import Category from "@/models/Category";
@@ -36,7 +37,11 @@ async function withDB<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-export function getSettings(): Promise<SettingsData> {
+/**
+ * Cached per request: the (site) layout and the page below it both need
+ * settings, and cache() collapses those into a single DB read.
+ */
+export const getSettings = cache(async function getSettings(): Promise<SettingsData> {
   return withDB<SettingsData>(
     async () => {
       const doc = await Setting.findOne({ key: "site" }).lean<ISettings | null>();
@@ -55,7 +60,7 @@ export function getSettings(): Promise<SettingsData> {
     },
     fallbackSettings,
   );
-}
+});
 
 export interface TreatData {
   _id: string;
