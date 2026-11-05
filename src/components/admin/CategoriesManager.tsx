@@ -4,14 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
-  Check,
   LoaderCircle,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
 import { CATEGORY_ICONS, CategoryGlyph } from "../CategoryIcon";
-import { ConfirmDrawer } from "./Drawer";
+import { AdminDrawer, ConfirmDrawer } from "./Drawer";
 import LoadError from "./LoadError";
 import { showToast } from "./AdminShell";
 
@@ -23,20 +22,25 @@ interface Category {
   order: number;
 }
 
+interface FormState {
+  _id: string | null;
+  name: string;
+  icon: string;
+}
+
+const emptyForm: FormState = { _id: null, name: "", icon: "sparkles" };
+
 export default function CategoriesManager() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newName, setNewName] = useState("");
-  const [newIcon, setNewIcon] = useState("sparkles");
-  const [addError, setAddError] = useState<string | undefined>(undefined);
-  const [adding, setAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editIcon, setEditIcon] = useState("sparkles");
-  const [editError, setEditError] = useState<string | undefined>(undefined);
+  const [loadError, setLoadError] = useState(false);
+  const [form, setForm] = useState<FormState | null>(null);
+  const [baseline, setBaseline] = useState<FormState | null>(null);
+  const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string }>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,57 +62,57 @@ export default function CategoriesManager() {
     load();
   }, [load]);
 
-  async function add(e: React.FormEvent) {
+  const openForm = (f: FormState) => {
+    setForm(f);
+    setBaseline(f);
+    setErrors({});
+  };
+
+  const closeForm = useCallback(() => {
+    setForm(null);
+    setBaseline(null);
+    setErrors({});
+  }, []);
+
+  /* Unsaved work: every drawer exit routes through the discard check. */
+  const dirty =
+    form !== null &&
+    baseline !== null &&
+    JSON.stringify(form) !== JSON.stringify(baseline);
+
+  const requestClose = useCallback(() => {
+    if (dirty) setDiscardOpen(true);
+    else closeForm();
+  }, [dirty, closeForm]);
+
+  async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!newName.trim()) {
-      setAddError("Give the category a name.");
+    if (!form) return;
+    if (!form.name.trim()) {
+      setErrors({ name: "Give the category a name." });
       document.getElementById("cat-name")?.focus();
       return;
     }
-    setAddError(undefined);
-    setAdding(true);
+    setErrors({});
+    setSaving(true);
     try {
-      const res = await fetch("/api/admin/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName, icon: newIcon }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Couldn't add the category.");
-      showToast(`"${data.category.name}" added.`);
-      setNewName("");
-      setNewIcon("sparkles");
-      load();
-    } catch (err) {
-      showToast((err as Error).message, "error");
-    } finally {
-      setAdding(false);
-    }
-  }
-
-  async function rename(category: Category) {
-    if (!editName.trim()) {
-      setEditError("Name can't be empty.");
-      document.getElementById("cat-edit-name")?.focus();
-      return;
-    }
-    setEditError(undefined);
-    setBusyId(category._id);
-    try {
-      const res = await fetch(`/api/admin/categories/${category._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName, icon: editIcon }),
-      });
+      const res = await fetch(
+        form._id ? `/api/admin/categories/${form._id}` : "/api/admin/categories",
+        {
+          method: form._id ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: form.name, icon: form.icon }),
+        },
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed.");
-      showToast("Category updated.");
-      setEditingId(null);
+      showToast(form._id ? "Category updated." : `"${data.category.name}" added.`);
+      closeForm();
       load();
     } catch (err) {
       showToast((err as Error).message, "error");
     } finally {
-      setBusyId(null);
+      setSaving(false);
     }
   }
 
@@ -166,10 +170,11 @@ export default function CategoriesManager() {
           type="button"
           title={i.label}
           aria-label={i.label}
+          aria-pressed={value === i.key}
           onClick={() => onChange(i.key)}
           className={`grid h-9 w-9 place-items-center rounded-lg border transition-colors ${
             value === i.key
-              ? "border-berry bg-berry-soft text-berry"
+              ? "border-berry/40 bg-berry-soft text-berry-deep"
               : "border-cream-300 bg-white text-stone-400 hover:border-berry/40 hover:text-stone-600"
           }`}
         >
@@ -181,51 +186,19 @@ export default function CategoriesManager() {
 
   return (
     <div className="space-y-5">
-      {/* add */}
-      <form
-        onSubmit={add}
-        className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-cream-300 sm:p-6"
-      >
-        <h3 className="font-display text-lg font-bold text-ink">Add a category</h3>
-        <div className="mt-4 grid items-start gap-4 lg:grid-cols-[1fr_auto_auto]">
-          <div>
-            <label className="field-label" htmlFor="cat-name">
-              Name
-            </label>
-            <input
-              id="cat-name"
-              value={newName}
-              onChange={(e) => {
-                setNewName(e.target.value);
-                if (addError) setAddError(undefined);
-              }}
-              placeholder="Vegan bakes"
-              maxLength={40}
-              className={`field-input ${addError ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
-              aria-invalid={Boolean(addError)}
-            />
-            {addError && (
-              <p className="field-invalid" role="alert">
-                {addError}
-              </p>
-            )}
-          </div>
-          <div>
-            <p className="field-label">Icon</p>
-            {iconPicker(newIcon, setNewIcon)}
-          </div>
-          <div className="flex items-end">
-            <button type="submit" disabled={adding} className="btn-primary h-[42px] w-full lg:w-auto">
-              {adding ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4" strokeWidth={2} />
-              )}
-              Add category
-            </button>
-          </div>
-        </div>
-      </form>
+      {/* toolbar — same shape as the other managers */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[13px] text-stone-600 tabular-nums">
+          {categories.length} categor{categories.length === 1 ? "y" : "ies"}
+        </p>
+        <button
+          onClick={() => openForm({ ...emptyForm })}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2} />
+          Add category
+        </button>
+      </div>
 
       {/* list */}
       {loading ? (
@@ -242,138 +215,122 @@ export default function CategoriesManager() {
             No categories yet
           </h3>
           <p className="mt-1 max-w-xs text-[13px] text-stone-600">
-            Add one above — it appears instantly as a filter on the treats page.
+            Add your first one — it appears instantly as a filter on the treats page.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
-          {categories.map((c, idx) => {
-            const editing = editingId === c._id;
-            return (
-              <article
-                key={c._id}
-                className="rounded-2xl bg-white p-4 shadow-xs ring-1 ring-cream-300"
-              >
-                {editing ? (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      rename(c);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") {
-                        e.stopPropagation();
-                        setEditingId(null);
-                        setEditError(undefined);
-                      }
-                    }}
-                    className="space-y-3"
+          {categories.map((c, idx) => (
+            <article
+              key={c._id}
+              className="rounded-2xl bg-white p-4 shadow-xs ring-1 ring-cream-300"
+            >
+              <div className="flex items-center gap-2 sm:gap-3.5">
+                <div className="flex shrink-0 flex-col">
+                  <button
+                    onClick={() => move(c, -1)}
+                    disabled={idx === 0 || busyId === c._id}
+                    aria-label={`Move ${c.name} up`}
+                    className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
                   >
-                    <div>
-                      <label className="field-label" htmlFor="cat-edit-name">
-                        Name
-                      </label>
-                      <input
-                        id="cat-edit-name"
-                        value={editName}
-                        onChange={(e) => {
-                          setEditName(e.target.value);
-                          if (editError) setEditError(undefined);
-                        }}
-                        maxLength={40}
-                        className={`field-input ${editError ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
-                        autoFocus
-                        aria-invalid={Boolean(editError)}
-                      />
-                      {editError && (
-                        <p className="field-invalid" role="alert">
-                          {editError}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="field-label">Icon</p>
-                      {iconPicker(editIcon, setEditIcon)}
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingId(null);
-                          setEditError(undefined);
-                        }}
-                        className="btn-ghost"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={busyId === c._id}
-                        className="btn-primary"
-                      >
-                        {busyId === c._id ? (
-                          <LoaderCircle className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" strokeWidth={2} />
-                        )}
-                        Save
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className="flex items-center gap-2 sm:gap-3.5">
-                    <div className="flex shrink-0 flex-col">
-                      <button
-                        onClick={() => move(c, -1)}
-                        disabled={idx === 0 || busyId === c._id}
-                        aria-label={`Move ${c.name} up`}
-                        className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
-                      >
-                        <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} />
-                      </button>
-                      <button
-                        onClick={() => move(c, 1)}
-                        disabled={idx === categories.length - 1 || busyId === c._id}
-                        aria-label={`Move ${c.name} down`}
-                        className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
-                      >
-                        <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
-                      </button>
-                    </div>
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-berry-soft text-berry-deep">
-                      <CategoryGlyph icon={c.icon} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-semibold text-ink">{c.name}</p>
-                      <p className="text-[12px] text-stone-400">/{c.slug}</p>
-                    </div>
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingId(c._id);
-                          setEditName(c.name);
-                          setEditIcon(c.icon);
-                        }}
-                        aria-label={`Edit ${c.name}`}
-                        className="icon-btn hover:text-berry hover:ring-berry/40"
-                      >
-                        <Pencil className="h-4 w-4" strokeWidth={1.8} />
-                      </button>
-                      <button
-                        onClick={() => setDeleting(c)}
-                        aria-label={`Delete ${c.name}`}
-                        className="icon-btn hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
-                      >
-                        <Trash2 className="h-4 w-4" strokeWidth={1.8} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </article>
-            );
-          })}
+                    <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} />
+                  </button>
+                  <button
+                    onClick={() => move(c, 1)}
+                    disabled={idx === categories.length - 1 || busyId === c._id}
+                    aria-label={`Move ${c.name} down`}
+                    className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
+                  </button>
+                </div>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-berry-soft text-berry-deep">
+                  <CategoryGlyph icon={c.icon} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-semibold text-ink">{c.name}</p>
+                  <p className="text-[12px] text-stone-400">/{c.slug}</p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    onClick={() => openForm({ _id: c._id, name: c.name, icon: c.icon })}
+                    aria-label={`Edit ${c.name}`}
+                    className="icon-btn hover:text-berry hover:ring-berry/40"
+                  >
+                    <Pencil className="h-4 w-4" strokeWidth={1.8} />
+                  </button>
+                  <button
+                    onClick={() => setDeleting(c)}
+                    aria-label={`Delete ${c.name}`}
+                    className="icon-btn hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
+                  >
+                    <Trash2 className="h-4 w-4" strokeWidth={1.8} />
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
       )}
+
+      {/* add / edit drawer */}
+      <AdminDrawer
+        open={form !== null}
+        onOpenChange={(open) => {
+          if (!open) requestClose();
+        }}
+        onCloseRequest={requestClose}
+        title={form?._id ? "Edit category" : "New category"}
+        dismissible={false}
+      >
+        {form && (
+          <form onSubmit={save} className="space-y-4">
+            <div>
+              <label className="field-label" htmlFor="cat-name">
+                Name *
+              </label>
+              <input
+                id="cat-name"
+                value={form.name}
+                onChange={(e) => {
+                  setForm({ ...form, name: e.target.value });
+                  if (errors.name) setErrors({});
+                }}
+                placeholder="Vegan bakes"
+                maxLength={40}
+                className={`field-input ${errors.name ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
+                autoFocus
+                aria-invalid={Boolean(errors.name)}
+              />
+              {errors.name && (
+                <p className="field-invalid" role="alert">
+                  {errors.name}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <span className="field-label">Icon</span>
+              {iconPicker(form.icon, (v) => setForm({ ...form, icon: v }))}
+              <p className="field-hint">Shown on the treats page filter chips.</p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button type="button" onClick={requestClose} className="btn-ghost">
+                Cancel
+              </button>
+              <button type="submit" disabled={saving} className="btn-primary">
+                {saving ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" strokeWidth={2} />
+                )}
+                {saving ? "Saving…" : form._id ? "Save changes" : "Add category"}
+              </button>
+            </div>
+          </form>
+        )}
+      </AdminDrawer>
 
       {/* delete confirm */}
       <ConfirmDrawer
@@ -386,6 +343,17 @@ export default function CategoriesManager() {
         confirmLabel="Delete"
         busy={deleting !== null && busyId === deleting._id}
         onConfirm={remove}
+      />
+
+      {/* discard unsaved edits */}
+      <ConfirmDrawer
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard changes?"
+        tone="discard"
+        body="This category hasn't been saved — closing now loses your edits."
+        confirmLabel="Discard"
+        onConfirm={closeForm}
       />
     </div>
   );

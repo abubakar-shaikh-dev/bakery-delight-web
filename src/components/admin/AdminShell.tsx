@@ -164,10 +164,11 @@ export default function AdminShell({
   const title = titles[pathname] ?? "Admin";
 
   const sidebarNav = (
-    <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-6">
+    <nav className="scroll-thin on-dark flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-6">
       {navSections.map((section) => (
         <div key={section.label}>
-          {!collapsed && (
+          {/* a label for a lone item is noise — label only real groups */}
+          {section.items.length > 1 && !collapsed && (
             <p className="mb-2 px-3 text-[11px] font-medium text-white/40">
               {section.label}
             </p>

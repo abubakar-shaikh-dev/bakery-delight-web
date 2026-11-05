@@ -32,7 +32,7 @@ Defined once in `src/app/globals.css` under `@theme`. Never use raw hex in compo
 | `gold` / `gold-ink` / `gold-soft` | `#f5a623` / `#8a5c02` / `#faf1d3` | Ratings and "featured" only — never decoration |
 | `wa` / `wa-soft` | `#075e54` / `#e8f7ee` | WhatsApp meaning only (order links, contact card). Dark shade passes contrast — the old `#25D366`-with-white-text card did not |
 | `success` / `success-soft` | `#1a7f4b` / `#e8f7ee` | Approval states |
-| `danger` / `danger-soft` | `#9c333d` / `#fdecec` | Destructive actions, error text/backgrounds |
+| `danger` / `danger-deep` / `danger-soft` | `#9c333d` / `#7f2831` / `#fdecec` | Destructive actions (base/hover) and error text/backgrounds |
 
 Rules:
 
@@ -96,6 +96,7 @@ Patterns worth copying:
 - **Status pills** — quiet 11px semibold on soft tint (`Live`, `Pending`, `New`); unread count is the one berry number on the admin dashboard.
 - **Admin touch safety** — hover-revealed controls must be visible on touch: `opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100` (see GalleryManager delete).
 - **Empty states** — icon chip, display heading, one sentence, one action. Written in the bakery's voice ("New bakes are always in the oven").
+- **Confirm sheets** — tone-aware: `danger` (deleting an entity) shows a trash chip in danger-soft with a danger-text icon; `discard` (throwing away unsaved work) shows a revert chip in cream with stone text. The safe action ("Keep it") receives focus on open so a hasty Enter never confirms the loss; the destructive button is `btn-danger` (the danger token, never the berry accent).
 - **Loading** — `.skeleton` blocks mirroring exact layout; every page's `loading.tsx` matches its content layout so nothing jumps.
 - **Gallery bento** — upload-time crop shapes (Square 1:1, Wide 16:9, Tall 9:16) drive cell spans (1×1 / 2×1 / 1×2) on an explicit row-height grid; the cropper's ratio chips carry mini shape glyphs and match the wall's cell vocabulary. These three shapes are the set — anything else crops heavily and stays out.
 

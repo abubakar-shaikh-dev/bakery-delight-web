@@ -545,6 +545,7 @@ export default function TreatsManager() {
         open={discardOpen}
         onOpenChange={setDiscardOpen}
         title="Discard changes?"
+        tone="discard"
         body="This treat hasn't been saved — closing now loses your edits."
         confirmLabel="Discard"
         onConfirm={closeForm}

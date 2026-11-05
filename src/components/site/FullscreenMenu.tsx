@@ -192,7 +192,7 @@ export default function FullscreenMenu() {
               </div>
 
               {/* display links — the heart of the page */}
-              <nav aria-label="Menu" className="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
+              <nav aria-label="Menu" className="scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
                 <ul className="my-auto flex flex-col gap-1.5 sm:gap-2.5">
                   {NAV_LINKS.map((l, i) => {
                     const active =

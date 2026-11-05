@@ -52,6 +52,7 @@
 
   /* Danger — destructive and error states (berry family, redder than accent) */
   --color-danger: #9c333d;
+  --color-danger-deep: #7f2831;
   --color-danger-soft: #fdecec;
 }
 
@@ -111,6 +112,48 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Quiet scrollbars for scrollable panels — thin, token-tinted, transparent
+   track, no arrow buttons. Default variant suits light surfaces; .on-dark
+   retints the thumb for cocoa panels. Firefox: scrollbar-width/color.
+--------------------------------------------------------------------------- */
+.scroll-thin {
+  --scroll-thumb: rgba(28, 9, 6, 0.18); /* ink at hairline strength */
+  --scroll-thumb-hover: rgba(28, 9, 6, 0.3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.scroll-thin.on-dark {
+  --scroll-thumb: rgba(255, 248, 243, 0.16); /* cream-50 at hairline strength */
+  --scroll-thumb-hover: rgba(255, 248, 243, 0.3);
+}
+
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+  background-clip: content-box;
+}
+
+.scroll-thin::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------------------
    Shared component classes (DRY) — used by the site forms and admin panel.
 --------------------------------------------------------------------------- */
 @layer components {
@@ -153,7 +196,7 @@ body {
   }
 
   .btn-danger {
-    @apply rounded-full bg-berry-deep px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#9c333d];
+    @apply rounded-full bg-danger px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-danger-deep;
   }
 
   .icon-btn {

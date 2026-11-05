@@ -541,6 +541,7 @@ export default function ReviewsManager() {
         open={discardOpen}
         onOpenChange={setDiscardOpen}
         title="Discard changes?"
+        tone="discard"
         body="This review hasn't been saved — closing now loses your edits."
         confirmLabel="Discard"
         onConfirm={closeForm}

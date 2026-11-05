@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { Check, LoaderCircle, Pencil, Trash2 } from "lucide-react";
+import { Check, ImagePlus, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import ImageUploader, { type RatioOption } from "./ImageUploader";
-import { ConfirmDrawer } from "./Drawer";
+import { AdminDrawer, ConfirmDrawer } from "./Drawer";
 import LoadError from "./LoadError";
 import { showToast } from "./AdminShell";
 
@@ -22,16 +22,27 @@ interface GalleryItem {
   ratio: string;
 }
 
+interface FormState {
+  image: string;
+  publicId: string | null;
+  ratio: string;
+  caption: string;
+}
+
+const emptyForm: FormState = { image: "", publicId: null, ratio: "1:1", caption: "" };
+
 export default function GalleryManager() {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [pendingCaption, setPendingCaption] = useState("");
+  const [form, setForm] = useState<FormState | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<{ image?: string }>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState("");
   const [deleting, setDeleting] = useState<GalleryItem | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,28 +64,48 @@ export default function GalleryManager() {
     load();
   }, [load]);
 
-  async function addPhoto(url: string, publicId?: string | null, ratio?: string) {
-    if (!url) return;
-    setUploading(true);
+  const closeForm = useCallback(() => {
+    setForm(null);
+    setErrors({});
+  }, []);
+
+  /* Unsaved work: a cropped photo or a typed caption counts. */
+  const dirty =
+    form !== null && (form.image !== "" || form.caption.trim() !== "");
+
+  const requestClose = useCallback(() => {
+    if (dirty) setDiscardOpen(true);
+    else closeForm();
+  }, [dirty, closeForm]);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form) return;
+    if (!form.image) {
+      setErrors({ image: "Choose and crop a photo first." });
+      return;
+    }
+    setErrors({});
+    setSaving(true);
     try {
       const res = await fetch("/api/admin/gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          url,
-          caption: pendingCaption,
-          ratio: ratio ?? "1:1",
-          cloudinaryPublicId: publicId ?? null,
+          url: form.image,
+          caption: form.caption,
+          ratio: form.ratio,
+          cloudinaryPublicId: form.publicId,
         }),
       });
       if (!res.ok) throw new Error("Save failed.");
-      showToast("Photo added to the homepage gallery.");
-      setPendingCaption("");
+      showToast("Photo added to the gallery.");
+      closeForm();
       load();
     } catch (err) {
       showToast((err as Error).message, "error");
     } finally {
-      setUploading(false);
+      setSaving(false);
     }
   }
 
@@ -118,44 +149,19 @@ export default function GalleryManager() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* add panel */}
-      <div className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-cream-300 sm:p-6">
-        <h3 className="font-display text-lg font-bold text-ink">
-          Add a photo to the homepage gallery
-        </h3>
-        <p className="mt-0.5 text-[13px] text-stone-600">
-          Pick a shape while cropping — square, wide or tall. The newest 5 photos appear on the homepage.
+    <div className="space-y-5">
+      {/* toolbar — same shape as the other managers */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[13px] text-stone-600 tabular-nums">
+          {items.length} photo{items.length === 1 ? "" : "s"}
         </p>
-        <div className="mt-4 grid items-end gap-4 sm:grid-cols-[auto_1fr]">
-          <ImageUploader
-            ratios={GALLERY_RATIOS}
-            label="Choose & crop photo"
-            hint="Square, wide or tall · up to 8 MB"
-            onUploaded={addPhoto}
-          />
-          <div>
-            <label
-              className="mb-1.5 block text-[13px] font-medium text-stone-600"
-              htmlFor="gallery-caption"
-            >
-              Caption <span className="font-normal text-stone-400">(optional)</span>
-            </label>
-            <input
-              id="gallery-caption"
-              value={pendingCaption}
-              onChange={(e) => setPendingCaption(e.target.value)}
-              placeholder="Strawberry cream cake, ready for pickup…"
-              maxLength={120}
-              className="w-full rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-[14px] outline-none transition-[border-color,box-shadow] placeholder:text-stone-400 focus:border-berry/50 focus:ring-4 focus:ring-berry/10"
-            />
-            {uploading && (
-              <p className="mt-2 flex items-center gap-2 text-[13px] text-berry-deep">
-                <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> Saving to gallery…
-              </p>
-            )}
-          </div>
-        </div>
+        <button
+          onClick={() => setForm({ ...emptyForm })}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2} />
+          Add photo
+        </button>
       </div>
 
       {/* grid */}
@@ -169,11 +175,14 @@ export default function GalleryManager() {
         <LoadError label="The gallery couldn't be loaded." onRetry={load} />
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
-          <h3 className="font-display text-xl font-bold text-ink">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
+            <ImagePlus className="h-7 w-7" strokeWidth={1.8} />
+          </span>
+          <h3 className="mt-4 font-display text-xl font-bold text-ink">
             The gallery is empty
           </h3>
           <p className="mt-1 max-w-xs text-[13px] text-stone-500">
-            Upload your first photo above — it appears on the homepage instantly.
+            Add your first photo — the newest 5 appear on the homepage.
           </p>
         </div>
       ) : (
@@ -246,6 +255,75 @@ export default function GalleryManager() {
         </div>
       )}
 
+      {/* add drawer */}
+      <AdminDrawer
+        open={form !== null}
+        onOpenChange={(open) => {
+          if (!open) requestClose();
+        }}
+        onCloseRequest={requestClose}
+        title="New photo"
+        dismissible={false}
+      >
+        {form && (
+          <form onSubmit={save} className="space-y-4">
+            <div>
+              <ImageUploader
+                ratios={GALLERY_RATIOS}
+                label="Photo *"
+                hint="Square, wide or tall · up to 8 MB"
+                initialUrl={form.image}
+                onUploaded={(url, publicId, ratio) => {
+                  setForm((f) =>
+                    f
+                      ? {
+                          ...f,
+                          image: url,
+                          publicId: publicId ?? null,
+                          ratio: ratio ?? f.ratio,
+                        }
+                      : f,
+                  );
+                  if (errors.image) setErrors({});
+                }}
+              />
+              {errors.image && (
+                <p className="field-invalid" role="alert">
+                  {errors.image}
+                </p>
+              )}
+              <p className="field-hint">
+                Pick a shape while cropping. The newest 5 photos appear on the homepage.
+              </p>
+            </div>
+
+            <div>
+              <label className="field-label" htmlFor="gallery-caption">
+                Caption <span className="font-normal text-stone-400">(optional)</span>
+              </label>
+              <input
+                id="gallery-caption"
+                value={form.caption}
+                onChange={(e) => setForm({ ...form, caption: e.target.value })}
+                placeholder="Strawberry cream cake, ready for pickup…"
+                maxLength={120}
+                className="field-input"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button type="button" onClick={requestClose} className="btn-ghost">
+                Cancel
+              </button>
+              <button type="submit" disabled={saving} className="btn-primary">
+                {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                {saving ? "Adding…" : "Add to gallery"}
+              </button>
+            </div>
+          </form>
+        )}
+      </AdminDrawer>
+
       {/* delete confirm */}
       <ConfirmDrawer
         open={deleting !== null}
@@ -253,9 +331,20 @@ export default function GalleryManager() {
           if (!open) setDeleting(null);
         }}
         title="Remove this photo?"
-        body="It will also be deleted from Cloudinary."
+        body="It will also be deleted from storage."
         busy={removing}
         onConfirm={remove}
+      />
+
+      {/* discard unsaved work */}
+      <ConfirmDrawer
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard this photo?"
+        tone="discard"
+        body="The cropped photo and caption haven't been added yet — closing now loses them."
+        confirmLabel="Discard"
+        onConfirm={closeForm}
       />
     </div>
   );
