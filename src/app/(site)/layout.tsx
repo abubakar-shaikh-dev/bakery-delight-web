@@ -1,3 +1,4 @@
+import NextTopLoader from "nextjs-toploader";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
@@ -17,6 +18,20 @@ export default async function SiteLayout({
 
   return (
     <>
+      {/* Route-progress bar in the brand berry; sits above the sticky nav,
+          below drawers and toasts */}
+      <NextTopLoader
+        color="#cc4751"
+        height={3}
+        showSpinner={false}
+        shadow={false}
+        easing="ease"
+        speed={400}
+        crawl
+        crawlSpeed={200}
+        initialPosition={0.25}
+        zIndex={70}
+      />
       <SiteNav />
       {children}
       <Footer settings={settings} />
