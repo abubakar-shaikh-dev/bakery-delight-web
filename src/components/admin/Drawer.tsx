@@ -7,7 +7,8 @@ import type { ReactNode } from "react";
 /**
  * Bottom sheet for admin dialogs, built on vaul — Escape, focus trap and
  * scroll lock come for free. Forms use `dismissible={false}` so a stray
- * swipe can't throw away typed data.
+ * swipe can't throw away typed data. When `onCloseRequest` is set, the X
+ * asks the owner first — it can hold the close for a discard check.
  */
 export function AdminDrawer({
   open,
@@ -15,13 +16,16 @@ export function AdminDrawer({
   title,
   children,
   dismissible = true,
+  onCloseRequest,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   children: ReactNode;
   dismissible?: boolean;
+  onCloseRequest?: () => void;
 }) {
+  const requestClose = onCloseRequest ?? (() => onOpenChange(false));
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} dismissible={dismissible}>
       <Drawer.Portal>
@@ -39,7 +43,7 @@ export function AdminDrawer({
             </Drawer.Title>
             <button
               type="button"
-              onClick={() => onOpenChange(false)}
+              onClick={requestClose}
               aria-label="Close"
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
             >

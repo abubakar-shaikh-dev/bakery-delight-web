@@ -58,10 +58,37 @@ export default function ReviewsManager() {
   const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
   const [form, setForm] = useState<FormState | null>(null);
+  const [baseline, setBaseline] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<Review | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; text?: string }>({});
   const reqId = useRef(0);
+
+  const openForm = (f: FormState) => {
+    setForm(f);
+    setBaseline(f);
+    setErrors({});
+  };
+
+  const closeForm = useCallback(() => {
+    setForm(null);
+    setBaseline(null);
+    setErrors({});
+  }, []);
+
+  const requestClose = useCallback(() => {
+    if (
+      form !== null &&
+      baseline !== null &&
+      JSON.stringify(form) !== JSON.stringify(baseline)
+    ) {
+      setDiscardOpen(true);
+    } else {
+      closeForm();
+    }
+  }, [form, baseline, closeForm]);
 
   const load = useCallback(async (f: string) => {
     const id = ++reqId.current;
@@ -109,8 +136,17 @@ export default function ReviewsManager() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!form) return;
-    if (!form.name.trim() || form.text.trim().length < 10)
-      return showToast("Name and a 10+ character review are required.", "error");
+    const next: { name?: string; text?: string } = {};
+    if (!form.name.trim()) next.name = "Who wrote this? A name is needed.";
+    if (form.text.trim().length < 10)
+      next.text = "The review should be at least 10 characters.";
+    if (next.name || next.text) {
+      setErrors(next);
+      (document.getElementById(next.name ? "review-name" : "review-text") as HTMLInputElement | null)
+        ?.focus();
+      return;
+    }
+    setErrors({});
 
     setSaving(true);
     try {
@@ -125,7 +161,7 @@ export default function ReviewsManager() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed.");
       showToast(form._id ? "Review updated." : "Review added.");
-      setForm(null);
+      closeForm();
       load(filter);
     } catch (err) {
       showToast((err as Error).message, "error");
@@ -179,7 +215,7 @@ export default function ReviewsManager() {
           ))}
         </div>
         <button
-          onClick={() => setForm({ ...emptyForm })}
+          onClick={() => openForm({ ...emptyForm })}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
@@ -275,7 +311,7 @@ export default function ReviewsManager() {
                   )}
                   <button
                     onClick={() =>
-                      setForm({
+                      openForm({
                         _id: r._id,
                         name: r.name,
                         rating: r.rating,
@@ -309,8 +345,9 @@ export default function ReviewsManager() {
       <AdminDrawer
         open={form !== null}
         onOpenChange={(open) => {
-          if (!open) setForm(null);
+          if (!open) requestClose();
         }}
+        onCloseRequest={requestClose}
         title={form?._id ? "Edit review" : "Add review"}
         dismissible={false}
       >
@@ -324,10 +361,20 @@ export default function ReviewsManager() {
                 <input
                   id="review-name"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={inputCls}
+                  onChange={(e) => {
+                    setForm({ ...form, name: e.target.value });
+                    if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+                  }}
+                  className={`${inputCls} ${errors.name ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
                   maxLength={60}
+                  autoFocus
+                  aria-invalid={Boolean(errors.name)}
                 />
+                {errors.name && (
+                  <p className="field-invalid" role="alert">
+                    {errors.name}
+                  </p>
+                )}
               </div>
               <div>
                 <span className={labelCls} id="review-rating-label">
@@ -362,17 +409,31 @@ export default function ReviewsManager() {
             </div>
 
             <div>
-              <label className={labelCls} htmlFor="review-text">
-                Review text *
-              </label>
+              <div className="flex items-baseline justify-between">
+                <label className={labelCls} htmlFor="review-text">
+                  Review text *
+                </label>
+                <span className="text-[11px] text-stone-400 tabular-nums">
+                  {form.text.length}/600
+                </span>
+              </div>
               <textarea
                 id="review-text"
                 value={form.text}
-                onChange={(e) => setForm({ ...form, text: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, text: e.target.value });
+                  if (errors.text) setErrors((p) => ({ ...p, text: undefined }));
+                }}
                 rows={4}
                 maxLength={600}
-                className={`${inputCls} resize-none`}
+                className={`${inputCls} resize-none ${errors.text ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
+                aria-invalid={Boolean(errors.text)}
               />
+              {errors.text && (
+                <p className="field-invalid" role="alert">
+                  {errors.text}
+                </p>
+              )}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -384,7 +445,7 @@ export default function ReviewsManager() {
                   id="review-platform"
                   value={form.socialPlatform}
                   onChange={(e) => setForm({ ...form, socialPlatform: e.target.value })}
-                  className={`${inputCls} appearance-none`}
+                  className={`${inputCls} select-field`}
                 >
                   {PLATFORMS.map((p) => (
                     <option key={p} value={p}>
@@ -442,11 +503,7 @@ export default function ReviewsManager() {
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setForm(null)}
-                className="btn-ghost"
-              >
+              <button type="button" onClick={requestClose} className="btn-ghost">
                 Cancel
               </button>
               <button type="submit" disabled={saving} className="btn-primary">
@@ -477,6 +534,16 @@ export default function ReviewsManager() {
         confirmLabel="Delete"
         busy={deleting !== null && busyId === deleting._id}
         onConfirm={remove}
+      />
+
+      {/* discard unsaved edits */}
+      <ConfirmDrawer
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard changes?"
+        body="This review hasn't been saved — closing now loses your edits."
+        confirmLabel="Discard"
+        onConfirm={closeForm}
       />
     </div>
   );

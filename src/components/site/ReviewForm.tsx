@@ -160,7 +160,7 @@ export default function ReviewForm() {
             id="rv-platform"
             value={socialPlatform}
             onChange={(e) => setSocialPlatform(e.target.value)}
-            className={`${inputCls} appearance-none`}
+            className={`${inputCls} select-field`}
           >
             <option value="">Select…</option>
             {PLATFORMS.map((p) => (

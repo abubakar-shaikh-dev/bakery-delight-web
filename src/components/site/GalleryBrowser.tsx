@@ -78,9 +78,11 @@ export default function GalleryBrowser({
       if (e.key === "ArrowLeft")
         setViewing((v) => (v === null ? v : (v - 1 + images.length) % images.length));
       if (e.key === "Tab" && contentRef.current) {
+        // getClientRects, not offsetParent — offsetParent is null for
+        // position:fixed buttons (the corner close, mobile arrows).
         const items = Array.from(
           contentRef.current.querySelectorAll<HTMLElement>("button:not([disabled])"),
-        ).filter((el) => el.offsetParent !== null);
+        ).filter((el) => el.getClientRects().length > 0);
         if (items.length === 0) return;
         const first = items[0];
         const last = items[items.length - 1];

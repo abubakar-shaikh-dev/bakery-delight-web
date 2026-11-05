@@ -126,6 +126,24 @@ body {
     @apply mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep;
   }
 
+  /* Selects share .field-input but keep a visible chevron — appearance-none
+     alone leaves them looking like dead text inputs. */
+  .select-field {
+    @apply appearance-none pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+  }
+
+  /* Small helper text under a field: hints in stone, failures in danger. */
+  .field-hint {
+    @apply mt-1.5 block text-[12px] text-stone-500;
+  }
+
+  .field-invalid {
+    @apply text-[12px] font-medium text-danger;
+  }
+
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep disabled:opacity-60;
   }

@@ -10,6 +10,7 @@ import {
   Search,
   Star,
   Trash2,
+  X,
 } from "lucide-react";
 import ImageUploader from "./ImageUploader";
 import { AdminDrawer, ConfirmDrawer } from "./Drawer";
@@ -59,12 +60,39 @@ export default function TreatsManager() {
   const [loadError, setLoadError] = useState(false);
   const [q, setQ] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
+  const [baseline, setBaseline] = useState<FormState | null>(null);
   const [imagePublicId, setImagePublicId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<Treat | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; price?: string }>({});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reqId = useRef(0);
+
+  const openForm = (f: FormState) => {
+    setForm(f);
+    setBaseline(f);
+    setErrors({});
+  };
+
+  const closeForm = useCallback(() => {
+    setForm(null);
+    setBaseline(null);
+    setErrors({});
+    setImagePublicId(null);
+  }, []);
+
+  /* Unsaved work: every drawer exit routes through the discard check. */
+  const dirty =
+    form !== null &&
+    baseline !== null &&
+    JSON.stringify(form) !== JSON.stringify(baseline);
+
+  const requestClose = useCallback(() => {
+    if (dirty) setDiscardOpen(true);
+    else closeForm();
+  }, [dirty, closeForm]);
 
   const load = useCallback(async (query: string) => {
     const id = ++reqId.current;
@@ -114,7 +142,20 @@ export default function TreatsManager() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!form) return;
-    if (!form.name.trim()) return showToast("Give the treat a name.", "error");
+    const next: { name?: string; price?: string } = {};
+    if (!form.name.trim()) next.name = "Give the treat a name.";
+    if (form.price !== "") {
+      const n = Number(form.price);
+      if (Number.isNaN(n)) next.price = "Price should be a number.";
+      else if (n < 0) next.price = "Price can't be negative.";
+    }
+    if (next.name || next.price) {
+      setErrors(next);
+      (document.getElementById(next.name ? "treat-name" : "treat-price") as HTMLInputElement | null)
+        ?.focus();
+      return;
+    }
+    setErrors({});
 
     setSaving(true);
     try {
@@ -139,8 +180,7 @@ export default function TreatsManager() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed.");
       showToast(form._id ? "Treat updated." : "Treat added to the menu.");
-      setForm(null);
-      setImagePublicId(null);
+      closeForm();
       load(q.trim());
     } catch (err) {
       showToast((err as Error).message, "error");
@@ -179,11 +219,25 @@ export default function TreatsManager() {
             value={q}
             onChange={(e) => onSearch(e.target.value)}
             placeholder="Search treats…"
-            className="w-full rounded-full border border-cream-300 bg-white py-2.5 pl-11 pr-4 text-[13px] outline-none transition-[border-color,box-shadow] placeholder:text-stone-400 focus:border-berry/50 focus:ring-4 focus:ring-berry/10"
+            className="w-full rounded-full border border-cream-300 bg-white py-2.5 pl-11 pr-10 text-[13px] outline-none transition-[border-color,box-shadow] placeholder:text-stone-400 focus:border-berry/50 focus:ring-4 focus:ring-berry/10"
           />
+          {q && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => {
+                setQ("");
+                if (timer.current) clearTimeout(timer.current);
+                load("");
+              }}
+              className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
+            </button>
+          )}
         </div>
         <button
-          onClick={() => setForm({ ...emptyForm })}
+          onClick={() => openForm({ ...emptyForm })}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
@@ -251,7 +305,7 @@ export default function TreatsManager() {
               <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => {
-                    setForm({
+                    openForm({
                       _id: t._id,
                       name: t.name,
                       category: t.category,
@@ -285,11 +339,9 @@ export default function TreatsManager() {
       <AdminDrawer
         open={form !== null}
         onOpenChange={(open) => {
-          if (!open) {
-            setForm(null);
-            setImagePublicId(null);
-          }
+          if (!open) requestClose();
         }}
+        onCloseRequest={requestClose}
         title={form?._id ? "Edit treat" : "New treat"}
         dismissible={false}
       >
@@ -303,11 +355,21 @@ export default function TreatsManager() {
                 <input
                   id="treat-name"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, name: e.target.value });
+                    if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+                  }}
                   placeholder="Strawberry Cream Cake"
-                  className={inputCls}
+                  className={`${inputCls} ${errors.name ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
                   maxLength={80}
+                  autoFocus
+                  aria-invalid={Boolean(errors.name)}
                 />
+                {errors.name && (
+                  <p className="field-invalid" role="alert">
+                    {errors.name}
+                  </p>
+                )}
               </div>
               <div>
                 <label className={labelCls} htmlFor="treat-category">
@@ -318,7 +380,7 @@ export default function TreatsManager() {
                     id="treat-category"
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className={`${inputCls} appearance-none`}
+                    className={`${inputCls} select-field`}
                   >
                     <option value="" disabled>
                       Choose a category…
@@ -339,9 +401,7 @@ export default function TreatsManager() {
                     maxLength={40}
                   />
                 )}
-                <p className="mt-1 text-[12px] text-stone-500">
-                  Add new ones under Categories in the sidebar.
-                </p>
+                <p className="field-hint">Add new ones under Categories in the sidebar.</p>
               </div>
             </div>
 
@@ -362,17 +422,36 @@ export default function TreatsManager() {
             <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
               <div>
                 <label className={labelCls} htmlFor="treat-price">
-                  Price (₹)
+                  Price
                 </label>
-                <input
-                  id="treat-price"
-                  type="number"
-                  min={0}
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  placeholder="699"
-                  className={inputCls}
-                />
+                <div className="relative">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[14px] text-stone-400"
+                  >
+                    ₹
+                  </span>
+                  <input
+                    id="treat-price"
+                    type="number"
+                    min={0}
+                    step="1"
+                    inputMode="decimal"
+                    value={form.price}
+                    onChange={(e) => {
+                      setForm({ ...form, price: e.target.value });
+                      if (errors.price) setErrors((p) => ({ ...p, price: undefined }));
+                    }}
+                    placeholder="699"
+                    className={`${inputCls} pl-9 ${errors.price ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
+                    aria-invalid={Boolean(errors.price)}
+                  />
+                </div>
+                {errors.price && (
+                  <p className="field-invalid" role="alert">
+                    {errors.price}
+                  </p>
+                )}
               </div>
               <div>
                 <span className={labelCls}>Featured</span>
@@ -396,9 +475,14 @@ export default function TreatsManager() {
             </div>
 
             <div>
-              <label className={labelCls} htmlFor="treat-description">
-                Description
-              </label>
+              <div className="flex items-baseline justify-between">
+                <label className={labelCls} htmlFor="treat-description">
+                  Description
+                </label>
+                <span className="text-[11px] text-stone-400 tabular-nums">
+                  {form.description.length}/1200
+                </span>
+              </div>
               <textarea
                 id="treat-description"
                 value={form.description}
@@ -423,14 +507,7 @@ export default function TreatsManager() {
             />
 
             <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setForm(null);
-                  setImagePublicId(null);
-                }}
-                className="btn-ghost"
-              >
+              <button type="button" onClick={requestClose} className="btn-ghost">
                 Cancel
               </button>
               <button
@@ -461,6 +538,16 @@ export default function TreatsManager() {
         }
         busy={removing}
         onConfirm={remove}
+      />
+
+      {/* discard unsaved edits */}
+      <ConfirmDrawer
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard changes?"
+        body="This treat hasn't been saved — closing now loses your edits."
+        confirmLabel="Discard"
+        onConfirm={closeForm}
       />
     </div>
   );

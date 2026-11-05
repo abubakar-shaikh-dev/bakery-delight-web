@@ -28,10 +28,12 @@ export default function CategoriesManager() {
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState("sparkles");
+  const [addError, setAddError] = useState<string | undefined>(undefined);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editIcon, setEditIcon] = useState("sparkles");
+  const [editError, setEditError] = useState<string | undefined>(undefined);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -58,7 +60,12 @@ export default function CategoriesManager() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!newName.trim()) return showToast("Give the category a name.", "error");
+    if (!newName.trim()) {
+      setAddError("Give the category a name.");
+      document.getElementById("cat-name")?.focus();
+      return;
+    }
+    setAddError(undefined);
     setAdding(true);
     try {
       const res = await fetch("/api/admin/categories", {
@@ -80,7 +87,12 @@ export default function CategoriesManager() {
   }
 
   async function rename(category: Category) {
-    if (!editName.trim()) return showToast("Name can't be empty.", "error");
+    if (!editName.trim()) {
+      setEditError("Name can't be empty.");
+      document.getElementById("cat-edit-name")?.focus();
+      return;
+    }
+    setEditError(undefined);
     setBusyId(category._id);
     try {
       const res = await fetch(`/api/admin/categories/${category._id}`, {
@@ -183,11 +195,20 @@ export default function CategoriesManager() {
             <input
               id="cat-name"
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={(e) => {
+                setNewName(e.target.value);
+                if (addError) setAddError(undefined);
+              }}
               placeholder="Vegan bakes"
               maxLength={40}
-              className="field-input"
+              className={`field-input ${addError ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
+              aria-invalid={Boolean(addError)}
             />
+            {addError && (
+              <p className="field-invalid" role="alert">
+                {addError}
+              </p>
+            )}
           </div>
           <div>
             <p className="field-label">Icon</p>
@@ -234,7 +255,20 @@ export default function CategoriesManager() {
                 className="rounded-2xl bg-white p-4 shadow-xs ring-1 ring-cream-300"
               >
                 {editing ? (
-                  <div className="space-y-3">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      rename(c);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        e.stopPropagation();
+                        setEditingId(null);
+                        setEditError(undefined);
+                      }
+                    }}
+                    className="space-y-3"
+                  >
                     <div>
                       <label className="field-label" htmlFor="cat-edit-name">
                         Name
@@ -242,22 +276,38 @@ export default function CategoriesManager() {
                       <input
                         id="cat-edit-name"
                         value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
+                        onChange={(e) => {
+                          setEditName(e.target.value);
+                          if (editError) setEditError(undefined);
+                        }}
                         maxLength={40}
-                        className="field-input"
+                        className={`field-input ${editError ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
                         autoFocus
+                        aria-invalid={Boolean(editError)}
                       />
+                      {editError && (
+                        <p className="field-invalid" role="alert">
+                          {editError}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <p className="field-label">Icon</p>
                       {iconPicker(editIcon, setEditIcon)}
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => setEditingId(null)} className="btn-ghost">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditError(undefined);
+                        }}
+                        className="btn-ghost"
+                      >
                         Cancel
                       </button>
                       <button
-                        onClick={() => rename(c)}
+                        type="submit"
                         disabled={busyId === c._id}
                         className="btn-primary"
                       >
@@ -269,7 +319,7 @@ export default function CategoriesManager() {
                         Save
                       </button>
                     </div>
-                  </div>
+                  </form>
                 ) : (
                   <div className="flex items-center gap-2 sm:gap-3.5">
                     <div className="flex shrink-0 flex-col">

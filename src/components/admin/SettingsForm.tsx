@@ -37,8 +37,10 @@ const labelCls = "field-label";
 
 export default function SettingsForm() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [baseline, setBaseline] = useState<Settings | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [waError, setWaError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,8 +49,10 @@ export default function SettingsForm() {
         if (!res.ok) throw new Error();
         const data = await res.json();
         if (!cancelled) {
-          if (data.settings) setSettings(data.settings);
-          else throw new Error();
+          if (data.settings) {
+            setSettings(data.settings);
+            setBaseline(data.settings);
+          } else throw new Error();
           setLoadError(false);
         }
       })
@@ -65,19 +69,34 @@ export default function SettingsForm() {
       const res = await fetch("/api/admin/settings");
       if (!res.ok) throw new Error();
       const data = await res.json();
-      if (data.settings) setSettings(data.settings);
-      else throw new Error();
+      if (data.settings) {
+        setSettings(data.settings);
+        setBaseline(data.settings);
+      } else throw new Error();
       setLoadError(false);
     } catch {
       setLoadError(true);
     }
   }
 
+  /* Pristine form: Save stays quiet until something actually changed. */
+  const dirty =
+    settings !== null &&
+    baseline !== null &&
+    JSON.stringify(settings) !== JSON.stringify(baseline);
+
+  const invalidWa = (v: string) =>
+    v.length > 0 && !/^\d{6,15}$/.test(v.replace(/\D/g, ""));
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!settings) return;
-    if (settings.whatsappDigits && !/^\d{6,15}$/.test(settings.whatsappDigits.replace(/\D/g, "")))
-      return showToast("WhatsApp digits should be country code + number, digits only (e.g. 919876543210).", "error");
+    if (invalidWa(settings.whatsappDigits)) {
+      setWaError("Use country code + number, digits only (e.g. 919876543210).");
+      document.getElementById("set-wa-digits")?.focus();
+      return;
+    }
+    setWaError(undefined);
     setSaving(true);
     try {
       const res = await fetch("/api/admin/settings", {
@@ -87,6 +106,7 @@ export default function SettingsForm() {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error || "Save failed.");
+      setBaseline(settings);
       showToast("Settings saved — the site is updated.");
     } catch (err) {
       showToast((err as Error).message, "error");
@@ -146,6 +166,7 @@ export default function SettingsForm() {
               onChange={(e) => set("bakeryName", e.target.value)}
               className={inputCls}
               maxLength={60}
+              autoComplete="organization"
             />
           </div>
           <div>
@@ -179,6 +200,9 @@ export default function SettingsForm() {
               value={settings.phone}
               onChange={(e) => set("phone", e.target.value)}
               className={inputCls}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
             />
           </div>
           <div>
@@ -190,6 +214,8 @@ export default function SettingsForm() {
               value={settings.whatsappNumber}
               onChange={(e) => set("whatsappNumber", e.target.value)}
               className={inputCls}
+              type="tel"
+              inputMode="tel"
             />
           </div>
           <div>
@@ -199,10 +225,24 @@ export default function SettingsForm() {
             <input
               id="set-wa-digits"
               value={settings.whatsappDigits}
-              onChange={(e) => set("whatsappDigits", e.target.value)}
-              className={inputCls}
+              onChange={(e) => {
+                set("whatsappDigits", e.target.value);
+                if (waError) setWaError(undefined);
+              }}
+              onBlur={() => {
+                if (settings && invalidWa(settings.whatsappDigits))
+                  setWaError("Use country code + number, digits only (e.g. 919876543210).");
+              }}
+              className={`${inputCls} ${waError ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10" : ""}`}
               inputMode="numeric"
+              autoComplete="off"
+              aria-invalid={Boolean(waError)}
             />
+            {waError && (
+              <p className="field-invalid" role="alert">
+                {waError}
+              </p>
+            )}
           </div>
           <div>
             <label className={labelCls} htmlFor="set-email">
@@ -214,6 +254,7 @@ export default function SettingsForm() {
               value={settings.email}
               onChange={(e) => set("email", e.target.value)}
               className={inputCls}
+              autoComplete="email"
             />
           </div>
           <div className="sm:col-span-2">
@@ -226,6 +267,7 @@ export default function SettingsForm() {
               value={settings.address}
               onChange={(e) => set("address", e.target.value)}
               className={inputCls}
+              autoComplete="street-address"
             />
           </div>
         </div>
@@ -264,8 +306,16 @@ export default function SettingsForm() {
         </div>
       </section>
 
-      <div className="flex justify-end">
-        <button type="submit" disabled={saving} className="btn-primary px-7 py-3 text-[14px]">
+      <div className="flex items-center justify-end gap-3">
+        {!dirty && (
+          <span className="text-[12px] text-stone-400">No changes yet</span>
+        )}
+        <button
+          type="submit"
+          disabled={saving || !dirty}
+          title={dirty ? undefined : "Change a field to enable saving"}
+          className="btn-primary px-7 py-3 text-[14px]"
+        >
           {saving ? (
             <LoaderCircle className="h-4 w-4 animate-spin" />
           ) : (

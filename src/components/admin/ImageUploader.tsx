@@ -130,11 +130,30 @@ export default function ImageUploader({
   }, []);
 
   /* Escape closes the cropper (never mid-upload); focus lands on close. */
+  const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!src) return;
     closeRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !working) setSrc(null);
+      // keep Tab cycling inside the dialog, like the site's other modals
+      if (e.key === "Tab" && panelRef.current) {
+        const items = Array.from(
+          panelRef.current.querySelectorAll<HTMLElement>(
+            "button:not([disabled]), input, [tabindex]",
+          ),
+        ).filter((el) => el.getClientRects().length > 0);
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -248,7 +267,10 @@ export default function ImageUploader({
           aria-label="Crop photo"
           className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
         >
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl outline-none animate-[menu-in_180ms_ease-out]">
+          <div
+            ref={panelRef}
+            className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl outline-none animate-[menu-in_180ms_ease-out]"
+          >
             <div className="flex items-center justify-between border-b border-cream-300 px-5 py-4">
               <p className="font-display text-lg font-bold text-ink">Crop your photo</p>
               <button
