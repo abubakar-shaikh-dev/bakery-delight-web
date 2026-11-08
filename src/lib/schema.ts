@@ -1,0 +1,76 @@
+import { absoluteUrl } from "./site-url";
+import type { SettingsData, TreatData } from "./site-data";
+
+/**
+ * JSON-LD structured data builders — only schemas relevant to each page's
+ * detected type (per .agent/skills/nextjs-seo-audit → schema-json-optimization):
+ * Bakery on pages with contact signals, Product + BreadcrumbList on treat
+ * detail pages. Render with <script type="application/ld+json">.
+ */
+
+/** The bakery as a LocalBusiness — home and contact pages. */
+export function bakerySchema(settings: SettingsData): object {
+  const sameAs = Object.values(settings.socials).filter(Boolean);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Bakery",
+    name: settings.bakeryName,
+    url: absoluteUrl(),
+    telephone: settings.phone || undefined,
+    email: settings.email || undefined,
+    address: settings.address
+      ? { "@type": "PostalAddress", streetAddress: settings.address }
+      : undefined,
+    image: absoluteUrl("/og-default.jpg"),
+    priceRange: "₹₹",
+    ...(sameAs.length > 0 ? { sameAs } : {}),
+  };
+}
+
+/** A treat as a Product — treat detail pages. Offers only when priced. */
+export function productSchema(treat: TreatData): object {
+  const image = treat.image
+    ? treat.image.startsWith("http")
+      ? treat.image
+      : absoluteUrl(treat.image)
+    : undefined;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: treat.name,
+    description: treat.description || treat.tagline,
+    ...(image ? { image } : {}),
+    ...(treat.price !== null
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: treat.price,
+            priceCurrency: "INR",
+            availability: "https://schema.org/InStock",
+            url: absoluteUrl(`/treats/${treat.slug}`),
+          },
+        }
+      : {}),
+  };
+}
+
+/** Breadcrumb trail — pages with a breadcrumb nav (treat detail). */
+export function breadcrumbSchema(
+  items: Array<{ name: string; path: string }>,
+): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+/** Serialises a schema for the ld+json script tag. */
+export function jsonLd(schema: object): string {
+  return JSON.stringify(schema);
+}

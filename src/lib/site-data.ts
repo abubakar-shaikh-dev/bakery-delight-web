@@ -147,6 +147,30 @@ export function getRelatedTreats(
   );
 }
 
+/**
+ * Every treat's slug for the sitemap — lightweight on purpose. Falls back
+ * to the seed menu when the database is unreachable, so the sitemap never
+ * hard-fails either.
+ */
+export function getAllTreatSlugs(): Promise<
+  Array<{ slug: string; updatedAt: Date | null }>
+> {
+  return withDB<Array<{ slug: string; updatedAt: Date | null }>>(
+    async () => {
+      const docs = await Treat.find({})
+        .sort({ featured: -1, createdAt: 1 })
+        .limit(500)
+        .select({ slug: 1, updatedAt: 1 })
+        .lean();
+      return docs.map((d) => ({
+        slug: d.slug as string,
+        updatedAt: (d.updatedAt as Date) ?? null,
+      }));
+    },
+    fallbackTreatList.map((t) => ({ slug: t.slug, updatedAt: null })),
+  );
+}
+
 export interface ReviewData {
   _id: string;
   name: string;

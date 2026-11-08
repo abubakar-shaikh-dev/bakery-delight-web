@@ -9,6 +9,8 @@ import {
   getSettings,
   getTreatBySlug,
 } from "@/lib/site-data";
+import { absoluteUrl } from "@/lib/site-url";
+import { breadcrumbSchema, jsonLd, productSchema } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +19,36 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const treat = await getTreatBySlug(slug);
-  if (!treat) return { title: "Treat not found" };
+  if (!treat) return { title: "Treat not found", robots: { index: false, follow: false } };
+  const description =
+    treat.tagline || treat.description.slice(0, 150);
   return {
     title: treat.name,
-    description: treat.tagline || treat.description.slice(0, 150),
+    description,
+    alternates: { canonical: absoluteUrl(`/treats/${treat.slug}`) },
+    openGraph: {
+      title: `${treat.name} — Bakery Delight`,
+      description,
+      url: absoluteUrl(`/treats/${treat.slug}`),
+      siteName: "Bakery Delight",
+      type: "website",
+      images: [
+        treat.image
+          ? {
+              url: treat.image.startsWith("http")
+                ? treat.image
+                : absoluteUrl(treat.image),
+              width: 1200,
+              height: 630,
+            }
+          : { url: absoluteUrl("/og-default.jpg"), width: 1200, height: 630 },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${treat.name} — Bakery Delight`,
+      description,
+    },
   };
 }
 
@@ -36,6 +64,24 @@ export default async function TreatPage({ params }: Props) {
 
   return (
     <main className="bg-cream-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd(productSchema(treat)),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd(
+            breadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Treats", path: "/treats" },
+              { name: treat.name, path: `/treats/${treat.slug}` },
+            ]),
+          ),
+        }}
+      />
       <nav
         aria-label="Breadcrumb"
         className="flex items-center gap-2 px-5 pt-6 text-[12px] font-medium text-stone-500 sm:px-10 lg:px-[8.5rem]"

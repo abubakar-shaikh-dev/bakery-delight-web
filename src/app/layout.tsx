@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site-url";
 
 const poppins = localFont({
   src: [
@@ -30,12 +31,20 @@ const caveat = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Bakery Delight — Homemade Cakes, Happier Moments",
     template: "%s — Bakery Delight",
   },
   description:
-    "Delicious homemade cakes, freshly baked in a home kitchen, with love — just for you.",
+    "Delicious homemade cakes, cupcakes and treats, freshly baked to order in a small home kitchen — made with love for birthdays and every celebration.",
+  openGraph: {
+    siteName: "Bakery Delight",
+    type: "website",
+    locale: "en_IN",
+    images: [{ url: "/og-default.jpg", width: 1200, height: 630 }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 /** Shared decorative branch, referenced with <use href="#branch"> across the site. */

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import PageHeader from "@/components/site/PageHeader";
 import ContactForm from "@/components/site/ContactForm";
 import {
@@ -12,13 +12,10 @@ import {
   IconYoutube,
 } from "@/components/icons";
 import { getSettings, SettingsData } from "@/lib/site-data";
+import { bakerySchema, jsonLd } from "@/lib/schema";
 import { IconClock } from "@/components/icons";
 
-export const metadata: Metadata = {
-  title: "Contact Us — Bakery Delight",
-  description:
-    "Order a cake or say hello — WhatsApp, phone, email or the contact form. We'd love to bake for you.",
-};
+export const metadata = pageMetadata(SITE_PAGES.contact);
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +38,10 @@ export default async function ContactPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(bakerySchema(settings)) }}
+      />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="We'd love to hear from you"

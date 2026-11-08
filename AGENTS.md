@@ -64,6 +64,18 @@ Environment lives in `.env.local` (Mongo URI, Cloudinary keys, `ADMIN_EMAIL`, `A
 - **Motion**: `transition-colors` / `transition-shadow` / `transition-[border-color,box-shadow]` — never `transition-all`, never animated layout properties, no looping decoration. Skeletons and spinners are the only allowed loops.
 - **File placement**: new public sections are `src/components/` server components when possible; interactivity goes into `src/components/site/*` client components. Keep `page.tsx` files thin (data + composition).
 
+## SEO
+
+The checklists come from the skill at `.agent/skills/nextjs-seo-audit/SKILL.md` (run it whenever touching meta tags, headings or page structure). The rules below make compliance nearly automatic:
+
+- **`NEXT_PUBLIC_SITE_URL` in `.env.local` is the single source of truth** for the site's public URL. Canonical tags, Open Graph URLs and `sitemap.xml` all derive from it via `src/lib/site-url.ts` (`absoluteUrl()`). Never hardcode a domain anywhere.
+- **Every public page takes its metadata from the registry** in `src/lib/site-pages.ts` via `export const metadata = pageMetadata(SITE_PAGES.<key>)`. The registry entry supplies the title, description (120–160 chars), canonical, Open Graph and Twitter tags, and a `sitemap.xml` entry — one edit covers everything.
+- **When you create a public page**: add a `SITE_PAGES` entry (title segment renders as `<title> — Bakery Delight`, keep the result 30–60 chars; description 120–160), then use `pageMetadata()`. When you edit a page's copy, update its registry entry to match.
+- **Dynamic routes** (like `treats/[slug]`) use `generateMetadata()` with the same fields — copy the pattern from `src/app/(site)/treats/[slug]/page.tsx` — and need their URLs added to `src/app/sitemap.ts` explicitly (static pages come from the registry automatically).
+- **Structured data** builders live in `src/lib/schema.ts`. Add only schemas relevant to the page type: `bakerySchema` on pages with contact signals (home, contact), `productSchema` + `breadcrumbSchema` on treat detail. Render with `<script type="application/ld+json">`.
+- **Keep `/admin` and `/api` out of search**: robots.ts disallows them and the admin layouts set `robots: { index: false }`. Don't remove either; new admin sections inherit the layout's noindex.
+- `og-default.jpg` (1200×630) is the fallback share image; pages may override it in their metadata.
+
 ## Gotchas
 
 - `page.tsx` searchParams in Next 16 are a Promise — `await` them.

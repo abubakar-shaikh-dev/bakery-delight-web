@@ -1,13 +1,10 @@
-import type { Metadata } from "next";
+import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import PageHeader from "@/components/site/PageHeader";
 import ReviewsBrowser from "@/components/site/ReviewsBrowser";
 import ReviewForm from "@/components/site/ReviewForm";
 import { getReviewsPage } from "@/lib/site-data";
 
-export const metadata: Metadata = {
-  title: "Customer Reviews",
-  description: "What our customers say about Bakery Delight's homemade cakes and treats.",
-};
+export const metadata = pageMetadata(SITE_PAGES.reviews);
 
 export const dynamic = "force-dynamic";
 

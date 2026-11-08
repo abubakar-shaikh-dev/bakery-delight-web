@@ -19,7 +19,10 @@ import {
   TestimonialsLandingSkeleton,
   TreatsLandingSkeleton,
 } from "@/components/site/Skeletons";
+import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
+import { bakerySchema, jsonLd } from "@/lib/schema";
 
+export const metadata = pageMetadata(SITE_PAGES.home);
 export const dynamic = "force-dynamic";
 
 /* Streamed, DB-backed sections — each renders behind its own exact-layout skeleton. */
@@ -46,6 +49,10 @@ export default async function Home() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(bakerySchema(settings)) }}
+      />
       <Hero reviewStats={reviewStats} />
       <Features />
 

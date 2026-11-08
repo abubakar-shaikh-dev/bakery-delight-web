@@ -1,14 +1,10 @@
-import type { Metadata } from "next";
+import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import Image from "next/image";
 import PageHeader from "@/components/site/PageHeader";
 import CtaBand from "@/components/CtaBand";
 import { IconGift, IconHeart, IconLeaf, IconHome } from "@/components/icons";
 
-export const metadata: Metadata = {
-  title: "About Us — Bakery Delight",
-  description:
-    "The story of Bakery Delight — a small home kitchen with big dreams, spreading happiness through homemade cakes.",
-};
+export const metadata = pageMetadata(SITE_PAGES.about);
 
 export const dynamic = "force-dynamic";
 

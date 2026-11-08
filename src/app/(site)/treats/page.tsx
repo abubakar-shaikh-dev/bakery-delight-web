@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
 import PageHeader from "@/components/site/PageHeader";
+import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import TreatsBrowser from "@/components/site/TreatsBrowser";
 import { getSettings, getTreatsPage } from "@/lib/site-data";
 
-export const metadata: Metadata = {
-  title: "Our Treats",
-  description:
-    "Browse our cakes, cupcakes, cookies, brownies and seasonal specials — homemade, fresh and made with love.",
-};
+export const metadata = pageMetadata(SITE_PAGES.treats);
 
 export const dynamic = "force-dynamic";
 

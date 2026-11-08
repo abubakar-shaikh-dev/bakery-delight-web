@@ -50,7 +50,9 @@ export default defineConfig({
   webServer: {
     command: "pnpm exec next dev -p 3100",
     url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
+    // Never reuse: an orphaned server on this port would run stale code
+    // against the tests. Failing loudly is the correct behaviour.
+    reuseExistingServer: false,
     timeout: 180_000,
     stdout: "pipe",
     stderr: "pipe",

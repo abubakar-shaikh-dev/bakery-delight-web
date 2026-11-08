@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import { IconCupcake } from "@/components/icons";
 import { getSettings } from "@/lib/site-data";
+
+// generateMetadata is discarded when notFound() renders this page, so the
+// noindex lives here — 404s never belong in an index anyway.
+export const metadata: Metadata = {
+  title: "Page not found",
+  robots: { index: false, follow: false },
+};
 
 export const dynamic = "force-dynamic";
 

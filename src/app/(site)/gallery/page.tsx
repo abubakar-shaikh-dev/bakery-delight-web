@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
+import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import PageHeader from "@/components/site/PageHeader";
 import GalleryBrowser from "@/components/site/GalleryBrowser";
 import { getGalleryPage } from "@/lib/site-data";
 
-export const metadata: Metadata = {
-  title: "Gallery",
-  description:
-    "Photos from our home kitchen — the cakes, the crumbs and the celebrations, straight from the oven.",
-};
+export const metadata = pageMetadata(SITE_PAGES.gallery);
 
 export const dynamic = "force-dynamic";
 
