@@ -36,6 +36,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (typeof body?.cloudinaryPublicId === "string" && body.cloudinaryPublicId)
       update.cloudinaryPublicId = body.cloudinaryPublicId.slice(0, 200);
     if (typeof body?.featured === "boolean") update.featured = body.featured;
+    if (typeof body?.weight === "string") update.weight = body.weight.trim().slice(0, 40);
+    if (typeof body?.serves === "string") update.serves = body.serves.trim().slice(0, 40);
 
     const treat = await Treat.findByIdAndUpdate(id, update, { returnDocument: "after" }).lean();
     if (!treat) return NextResponse.json({ error: "Treat not found" }, { status: 404 });

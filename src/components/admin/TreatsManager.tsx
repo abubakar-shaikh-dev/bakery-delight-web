@@ -29,6 +29,8 @@ interface Treat {
   image: string;
   cloudinaryPublicId?: string | null;
   featured: boolean;
+  weight?: string;
+  serves?: string;
 }
 
 interface FormState {
@@ -40,6 +42,8 @@ interface FormState {
   price: string;
   image: string;
   featured: boolean;
+  weight: string;
+  serves: string;
 }
 
 const emptyForm: FormState = {
@@ -51,6 +55,8 @@ const emptyForm: FormState = {
   price: "",
   image: "",
   featured: false,
+  weight: "",
+  serves: "",
 };
 
 export default function TreatsManager() {
@@ -168,6 +174,8 @@ export default function TreatsManager() {
         image: form.image,
         cloudinaryPublicId: imagePublicId,
         featured: form.featured,
+        weight: form.weight,
+        serves: form.serves,
       };
       const res = await fetch(
         form._id ? `/api/admin/treats/${form._id}` : "/api/admin/treats",
@@ -295,6 +303,17 @@ export default function TreatsManager() {
                       Featured
                     </span>
                   )}
+                  {/* Nudges toward the fields that sell a treat. */}
+                  {!t.image && (
+                    <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
+                      No photo
+                    </span>
+                  )}
+                  {t.price === null && (
+                    <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
+                      No price
+                    </span>
+                  )}
                 </div>
                 <p className="mt-0.5 line-clamp-2 text-[13px] text-stone-500 sm:truncate">
                   {t.tagline || "—"}
@@ -314,6 +333,8 @@ export default function TreatsManager() {
                       price: t.price === null ? "" : String(t.price),
                       image: t.image,
                       featured: t.featured,
+                      weight: t.weight ?? "",
+                      serves: t.serves ?? "",
                     });
                     setImagePublicId(t.cloudinaryPublicId ?? null);
                   }}
@@ -473,6 +494,39 @@ export default function TreatsManager() {
                 </button>
               </div>
             </div>
+
+            {/* optional details — shown on the treat's public page */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls} htmlFor="treat-weight">
+                  Weight
+                </label>
+                <input
+                  id="treat-weight"
+                  value={form.weight}
+                  onChange={(e) => setForm({ ...form, weight: e.target.value })}
+                  placeholder="500 g / 1 kg"
+                  className={inputCls}
+                  maxLength={40}
+                />
+              </div>
+              <div>
+                <label className={labelCls} htmlFor="treat-serves">
+                  Serves
+                </label>
+                <input
+                  id="treat-serves"
+                  value={form.serves}
+                  onChange={(e) => setForm({ ...form, serves: e.target.value })}
+                  placeholder="8–10 people"
+                  className={inputCls}
+                  maxLength={40}
+                />
+              </div>
+            </div>
+            <p className="field-hint">
+              Both optional — they show on the treat&rsquo;s page.
+            </p>
 
             <div>
               <div className="flex items-baseline justify-between">

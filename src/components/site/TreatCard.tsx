@@ -1,5 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import { IconArrowRight, IconWhatsApp } from "../icons";
+import { waOrderLink } from "@/lib/utils";
 
 export default function TreatCard({
   treat,
@@ -9,6 +11,7 @@ export default function TreatCard({
   treat: {
     _id: string;
     name: string;
+    slug: string;
     category: string;
     tagline: string;
     description: string;
@@ -18,13 +21,15 @@ export default function TreatCard({
   whatsappDigits: string;
   priority?: boolean;
 }) {
-  const waText = encodeURIComponent(
-    `Hi Bakery Delight, I'd like to order ${treat.name}.`,
-  );
+  const detailHref = `/treats/${treat.slug}`;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-xs ring-1 ring-cream-300 transition-shadow duration-200 hover:shadow-md">
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <Link
+        href={detailHref}
+        aria-label={`View ${treat.name}`}
+        className="relative block aspect-[4/3] overflow-hidden"
+      >
         {treat.image ? (
           <Image
             src={treat.image}
@@ -42,13 +47,18 @@ export default function TreatCard({
         <span className="absolute top-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-berry-deep backdrop-blur-sm">
           {treat.category}
         </span>
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="font-display text-[22px] font-bold leading-tight text-ink">
-              {treat.name}
+              <Link
+                href={detailHref}
+                className="transition-colors duration-150 hover:text-berry-deep"
+              >
+                {treat.name}
+              </Link>
             </h3>
             <p className="mt-0.5 text-[13px] text-stone-500">{treat.tagline}</p>
           </div>
@@ -68,11 +78,7 @@ export default function TreatCard({
 
         <div className="mt-auto flex items-center justify-between pt-4">
           <a
-            href={
-              whatsappDigits
-                ? `https://wa.me/${whatsappDigits}?text=${waText}`
-                : undefined
-            }
+            href={whatsappDigits ? waOrderLink(whatsappDigits, treat.name) : undefined}
             target="_blank"
             rel="noopener noreferrer"
             aria-disabled={!whatsappDigits}

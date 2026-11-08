@@ -13,6 +13,8 @@ export interface SeedTreat {
   price: number | null;
   image: string;
   featured: boolean;
+  weight: string;
+  serves: string;
 }
 
 export const seedTreats: SeedTreat[] = [
@@ -26,6 +28,8 @@ export const seedTreats: SeedTreat[] = [
     price: 699,
     image: "/images/treat-cakes.jpg",
     featured: true,
+    weight: "500 g – 2 kg",
+    serves: "8–20",
   },
   {
     name: "Cupcakes",
@@ -37,6 +41,8 @@ export const seedTreats: SeedTreat[] = [
     price: 49,
     image: "/images/treat-cupcakes.jpg",
     featured: true,
+    weight: "60 g each",
+    serves: "Box of 6 or 12",
   },
   {
     name: "Cookies",
@@ -48,6 +54,8 @@ export const seedTreats: SeedTreat[] = [
     price: 199,
     image: "/images/treat-cookies.jpg",
     featured: true,
+    weight: "250 g box",
+    serves: "Makes 10–12 cookies",
   },
   {
     name: "Brownies",
@@ -59,6 +67,8 @@ export const seedTreats: SeedTreat[] = [
     price: 249,
     image: "/images/treat-brownies.jpg",
     featured: true,
+    weight: "350 g tray",
+    serves: "6–8",
   },
   {
     name: "Seasonal Specials",
@@ -70,6 +80,8 @@ export const seedTreats: SeedTreat[] = [
     price: 899,
     image: "/images/treat-seasonal.jpg",
     featured: true,
+    weight: "Varies by bake",
+    serves: "6–12",
   },
 ];
 

@@ -10,6 +10,8 @@ export interface ITreat {
     image: string;
     cloudinaryPublicId: string | null;
     featured: boolean;
+  weight: string;
+  serves: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +27,9 @@ const treatSchema = new Schema<ITreat>(
     image: { type: String, default: "", maxlength: 500 },
     cloudinaryPublicId: { type: String, default: null, maxlength: 200 },
     featured: { type: Boolean, default: false },
+    // Free text — bakers say "500 g", "1 kg" or "8 pieces", not grams only.
+    weight: { type: String, default: "", maxlength: 40 },
+    serves: { type: String, default: "", maxlength: 40 },
   },
   { timestamps: true },
 );

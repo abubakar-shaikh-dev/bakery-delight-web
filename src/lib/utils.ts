@@ -22,3 +22,8 @@ export function waLink(digits: string, text?: string) {
   const t = text ? `?text=${encodeURIComponent(text)}` : "";
   return `https://wa.me/${digits}${t}`;
 }
+
+/** The standard pre-filled order message, used by every treat CTA. */
+export function waOrderLink(digits: string, treatName: string) {
+  return waLink(digits, `Hi Bakery Delight, I'd like to order ${treatName}.`);
+}

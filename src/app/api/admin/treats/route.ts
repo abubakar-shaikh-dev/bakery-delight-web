@@ -71,6 +71,8 @@ async function POST_(req: NextRequest) {
     cloudinaryPublicId:
       typeof body?.cloudinaryPublicId === "string" ? body.cloudinaryPublicId.slice(0, 200) : null,
     featured: Boolean(body?.featured),
+    weight: typeof body?.weight === "string" ? body.weight.trim().slice(0, 40) : "",
+    serves: typeof body?.serves === "string" ? body.serves.trim().slice(0, 40) : "",
   });
 
   return NextResponse.json({ treat }, { status: 201 });

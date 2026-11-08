@@ -72,6 +72,8 @@ export interface TreatData {
   price: number | null;
   image: string;
   featured: boolean;
+  weight: string;
+  serves: string;
 }
 
 const mapTreat = (d: Record<string, unknown>): TreatData => ({
@@ -84,6 +86,8 @@ const mapTreat = (d: Record<string, unknown>): TreatData => ({
   price: (d.price as number | null) ?? null,
   image: d.image as string,
   featured: d.featured as boolean,
+  weight: (d.weight as string) ?? "",
+  serves: (d.serves as string) ?? "",
 });
 
 const fallbackTreatList: TreatData[] = fallbackTreats.map((t) => ({ ...t, _id: t.slug }));
@@ -99,6 +103,47 @@ export function getFeaturedTreats(limit = 5): Promise<TreatData[]> {
       return docs.map(mapTreat);
     },
     fallbackTreatList,
+  );
+}
+
+/** One treat for the detail page, or null when the slug is unknown. */
+export function getTreatBySlug(slug: string): Promise<TreatData | null> {
+  const clean = String(slug ?? "").trim().slice(0, 80);
+  return withDB<TreatData | null>(
+    async () => {
+      const doc = await Treat.findOne({ slug: clean }).lean();
+      return doc ? mapTreat(doc) : null;
+    },
+    fallbackTreatList.find((t) => t.slug === clean) ?? null,
+  );
+}
+
+/**
+ * Related treats for the detail page — same category first, then the rest
+ * of the menu, both sorted featured-first then oldest (the menu's order).
+ */
+export function getRelatedTreats(
+  treat: { slug: string; category: string },
+  limit = 4,
+): Promise<TreatData[]> {
+  const pick = (list: TreatData[]) => {
+    const others = list.filter((t) => t.slug !== treat.slug);
+    const sameCategory = others.filter((t) => t.category === treat.category);
+    return [...sameCategory, ...others.filter((t) => t.category !== treat.category)].slice(
+      0,
+      limit,
+    );
+  };
+
+  return withDB<TreatData[]>(
+    async () => {
+      const docs = await Treat.find({ slug: { $ne: treat.slug } })
+        .sort({ featured: -1, createdAt: 1 })
+        .limit(24)
+        .lean();
+      return pick(docs.map(mapTreat));
+    },
+    pick(fallbackTreatList),
   );
 }
 

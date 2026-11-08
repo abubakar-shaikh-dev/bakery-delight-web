@@ -114,30 +114,36 @@ export async function seedDb(): Promise<void> {
 
   // One featured treat (homepage strip) + 9 others (treats infinite scroll
   // needs more than the 8-per-page). Kulfi Dream is the search target.
+  // Weight/serves: Truffle Tower has both, Kulfi Dream weight only,
+  // Plain Batch neither — the detail page hides empty spec rows.
   const treats: Array<Record<string, unknown>> = [
-    ["Truffle Tower", FIX.categoryWithTreats, 499, img0, true, "A tower of dark truffles"],
-    ["Kulfi Dream", FIX.categoryWithTreats, 249, "", false, "Saffron kulfi cups"],
-    ["Pistachio Ring", FIX.categoryWithTreats, 199, "", false, "Nutty pistachio ring"],
-    ["Cocoa Cloud", FIX.categoryWithTreats, 299, "", false, "Feather-light chocolate"],
-    ["Berry Byte", FIX.categoryWithTreats, 149, img1, false, "Berry bites"],
-    ["Choco Chip Classic", FIX.freeCategory, 99, "", false, "The timeless cookie"],
-    ["Oat Crumble", FIX.freeCategory, 89, "", false, "Crumbly oat rounds"],
-    ["Ginger Snap", FIX.freeCategory, 79, "", false, "Snappy ginger biscuits"],
-    ["Lemon Drizzle", FIX.freeCategory, 129, "", false, "Zesty drizzle loaf"],
-    ["Plain Batch", FIX.freeCategory, null, "", false, "Simple and honest"],
-  ].map(([name, category, price, image, featured, tagline], i) => ({
-    name,
-    slug: String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    category,
-    price,
-    image,
-    featured,
-    tagline,
-    description: `Fixture treat ${name} baked for e2e testing.`,
-    cloudinaryPublicId: null,
-    createdAt: new Date(now + i * 60_000),
-    updatedAt: new Date(now + i * 60_000),
-  }));
+    ["Truffle Tower", FIX.categoryWithTreats, 499, img0, true, "A tower of dark truffles", "750 g", "10–12 people"],
+    ["Kulfi Dream", FIX.categoryWithTreats, 249, "", false, "Saffron kulfi cups", "200 g", ""],
+    ["Pistachio Ring", FIX.categoryWithTreats, 199, "", false, "Nutty pistachio ring", "", ""],
+    ["Cocoa Cloud", FIX.categoryWithTreats, 299, "", false, "Feather-light chocolate", "", ""],
+    ["Berry Byte", FIX.categoryWithTreats, 149, img1, false, "Berry bites", "", ""],
+    ["Choco Chip Classic", FIX.freeCategory, 99, "", false, "The timeless cookie", "", ""],
+    ["Oat Crumble", FIX.freeCategory, 89, "", false, "Crumbly oat rounds", "", ""],
+    ["Ginger Snap", FIX.freeCategory, 79, "", false, "Snappy ginger biscuits", "", ""],
+    ["Lemon Drizzle", FIX.freeCategory, 129, "", false, "Zesty drizzle loaf", "", ""],
+    ["Plain Batch", FIX.freeCategory, null, "", false, "Simple and honest", "", ""],
+  ].map(
+    ([name, category, price, image, featured, tagline, weight, serves], i) => ({
+      name,
+      slug: String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      category,
+      price,
+      image,
+      featured,
+      tagline,
+      description: `Fixture treat ${name} baked for e2e testing.`,
+      cloudinaryPublicId: null,
+      weight,
+      serves,
+      createdAt: new Date(now + i * 60_000),
+      updatedAt: new Date(now + i * 60_000),
+    }),
+  );
   await conn.collection("treats").insertMany(treats);
 
   // Two approved (one featured) for the public list; one pending for admin.

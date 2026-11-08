@@ -46,7 +46,7 @@ export default function Treats({
           {treats.map((t, i) => (
             <Link
               key={t._id}
-              href="/treats"
+              href={`/treats/${t.slug}`}
               className="group rounded-2xl bg-white p-2.5 shadow-xs ring-1 ring-cream-300 transition-shadow duration-200 hover:shadow-md"
             >
               <div className="relative aspect-[1/1.04] overflow-hidden rounded-xl">

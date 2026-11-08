@@ -20,6 +20,22 @@ test.describe("admin treats manager", () => {
     await expect(page.getByRole("article")).toHaveCount(10);
   });
 
+  test("rows flag the selling fields they are missing", async ({ page }) => {
+    await page.goto("/admin/treats");
+
+    // Plain Batch has neither an image nor a price — both nudges show.
+    const plain = page.getByRole("article").filter({ hasText: FIX.noPriceTreat });
+    await expect(plain.getByText("No photo")).toBeVisible();
+    await expect(plain.getByText("No price")).toBeVisible();
+
+    // Truffle Tower has both fields — no nudges.
+    const truffle = page
+      .getByRole("article")
+      .filter({ hasText: FIX.featuredTreat });
+    await expect(truffle.getByText("No photo")).toHaveCount(0);
+    await expect(truffle.getByText("No price")).toHaveCount(0);
+  });
+
   test("debounced search narrows the list", async ({ page }) => {
     await page.goto("/admin/treats");
     await page.getByPlaceholder("Search treats…").fill(FIX.searchWord);
@@ -70,6 +86,8 @@ test.describe("admin treats manager", () => {
     await drawer
       .locator("#treat-description")
       .fill("Created by the e2e suite to verify the whole path.");
+    await drawer.locator("#treat-weight").fill("900 g");
+    await drawer.locator("#treat-serves").fill("6–8 people");
     await drawer.getByRole("button", { name: "Add to menu" }).click();
 
     await expectToast(page, "Treat added to the menu.");
@@ -82,12 +100,20 @@ test.describe("admin treats manager", () => {
     expect(docs[0].slug).toBe("e2e-truffle");
     expect(docs[0].price).toBe(321);
     expect(docs[0].category).toBe(FIX.categoryWithTreats);
+    expect(docs[0].weight).toBe("900 g");
+    expect(docs[0].serves).toBe("6–8 people");
 
     // Public treats page shows it too (force-dynamic, no cache).
     await page.goto("/treats");
     await expect(
       page.getByRole("article").filter({ hasText: "E2E Truffle" }),
     ).toBeVisible();
+
+    // And the detail page renders the new fields.
+    await page.goto("/treats/e2e-truffle");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("E2E Truffle");
+    await expect(page.getByText("900 g")).toBeVisible();
+    await expect(page.getByText("6–8 people")).toBeVisible();
   });
 
   test("the featured toggle drives the homepage strip", async ({ page }) => {
