@@ -217,6 +217,12 @@ export default function SettingsForm() {
               type="tel"
               inputMode="tel"
             />
+            {settings.whatsappDigits && !settings.whatsappNumber && (
+              <p className="field-hint text-gold-ink">
+                Digits stay behind the scenes — add the display number so the
+                contact page can show it.
+              </p>
+            )}
           </div>
           <div>
             <label className={labelCls} htmlFor="set-wa-digits">
@@ -241,6 +247,12 @@ export default function SettingsForm() {
             {waError && (
               <p className="field-invalid" role="alert">
                 {waError}
+              </p>
+            )}
+            {!settings.whatsappDigits && !waError && (
+              <p className="field-hint text-gold-ink">
+                Every Order on WhatsApp button on the site disappears while
+                this is empty.
               </p>
             )}
           </div>

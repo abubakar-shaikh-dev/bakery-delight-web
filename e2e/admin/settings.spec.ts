@@ -27,8 +27,7 @@ test.describe("admin settings", () => {
     const digits = page.locator("#set-wa-digits");
 
     await digits.fill("123abc");
-    await digits.blur();
-    await expect(formAlert(page)).toHaveText(
+    await digits.blur();    await expect(formAlert(page)).toHaveText(
       "Use country code + number, digits only (e.g. 919876543210).",
     );
     await expect(digits).toHaveAttribute("aria-invalid", "true");
@@ -82,5 +81,32 @@ test.describe("admin settings", () => {
     await expect(
       page.getByRole("main").getByRole("link", { name: "Pinterest" }),
     ).toBeVisible();
+  });
+
+  test("WhatsApp digit guardrails warn before order links break", async ({
+    page,
+  }) => {
+    await page.goto("/admin/settings");
+
+    const digitsWarning = page.getByText(
+      "Every Order on WhatsApp button on the site disappears",
+    );
+    const displayHint = page.getByText("add the display number");
+
+    // Seeded settings have both fields — no warnings anywhere.
+    await expect(digitsWarning).toBeHidden();
+    await expect(displayHint).toBeHidden();
+
+    // Empty digits is the revenue-killing state — warn loudly.
+    const digits = page.locator("#set-wa-digits");
+    await digits.fill("");
+    await expect(digitsWarning).toBeVisible();
+
+    await digits.fill("919876540000");
+    await expect(digitsWarning).toBeHidden();
+
+    // Digits without a display number hide it from the contact page.
+    await page.locator("#set-wa-number").fill("");
+    await expect(displayHint).toBeVisible();
   });
 });

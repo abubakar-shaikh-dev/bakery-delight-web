@@ -27,7 +27,7 @@ pnpm start      # serve the production build
 pnpm lint       # eslint
 ```
 
-Environment lives in `.env.local` (Mongo URI, Cloudinary keys, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`). Never commit it.
+Environment lives in `.env.local` (Mongo URI, Cloudinary keys, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`). Never commit it. Optional: `RESEND_API_KEY` + `NOTIFY_EMAIL` enable best-effort email alerts for new contact messages and pending reviews (`src/lib/notify.ts`); unset means the feature is off.
 
 ## Architecture
 

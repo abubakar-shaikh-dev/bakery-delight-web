@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { clientIp, rateLimit, safeJson } from "@/lib/api";
 import { connectDB } from "@/lib/db";
 import Message from "@/models/Message";
+import { notifyOwner } from "@/lib/notify";
 import { isOptionalPhone } from "@/lib/utils";
 
 async function POST_(req: NextRequest) {
@@ -39,6 +40,15 @@ async function POST_(req: NextRequest) {
     );
 
   await Message.create({ name, email, phone, message });
+  // Best-effort alert so the owner hears about the lead without opening the
+  // admin panel. Never blocks or fails the submission.
+  await notifyOwner(`New message from ${name}`, [
+    `From: ${name} <${email}>${phone ? ` · ${phone}` : ""}`,
+    "",
+    message,
+    "",
+    "Reply in the admin panel: /admin/messages",
+  ]);
   return NextResponse.json({ ok: true });
 }
 

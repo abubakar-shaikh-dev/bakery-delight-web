@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { clientIp, rateLimit, safeJson } from "@/lib/api";
 import { connectDB } from "@/lib/db";
 import Review from "@/models/Review";
+import { notifyOwner } from "@/lib/notify";
 import { getReviewsPage } from "@/lib/site-data";
 
 /** Public: paginated approved reviews with average. */
@@ -57,6 +58,15 @@ async function POST_(req: NextRequest) {
     );
 
   await Review.create({ name, rating, text, socialPlatform, socialUrl, approved: false });
+  // Best-effort alert — pending reviews are invisible on the site until
+  // approved, so the owner needs to know one arrived.
+  await notifyOwner(`New review from ${name} (${rating}★) — awaiting approval`, [
+    `${name} rated ${rating}/5:`,
+    "",
+    text,
+    "",
+    "Approve in the admin panel: /admin/reviews",
+  ]);
   return NextResponse.json({ ok: true });
 }
 
