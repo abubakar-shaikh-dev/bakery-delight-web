@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      # Same setup as local e2e runs: MongoDB on localhost:27017, with the
+      # suite using the bakerydelight_test database (playwright.config.ts).
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 }).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # reads packageManager from package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Non-blocking while the 7 pre-existing react-hooks/set-state-in-effect
+      # errors in the managers' load() patterns remain (documented in
+      # AGENTS.md). Failures still surface as annotations.
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # e2e/support/env.ts reads .env.local directly, so the workflow writes
+      # one with throwaway values before the suite starts.
+      - name: Write test .env.local
+        run: |
+          cat > .env.local <<EOF
+          MONGODB_URI=mongodb://localhost:27017
+          MONGODB_DB=bakerydelight
+          ADMIN_EMAIL=admin@test.local
+          ADMIN_PASSWORD=ci-test-password-123
+          AUTH_SECRET=ci-only-not-a-secret
+          NEXT_PUBLIC_SITE_URL=http://localhost:3000
+          EOF
+
+      - name: E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
