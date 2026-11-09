@@ -3,6 +3,7 @@ import Image from "next/image";
 import PageHeader from "@/components/site/PageHeader";
 import CtaBand from "@/components/CtaBand";
 import { IconGift, IconHeart, IconLeaf, IconHome } from "@/components/icons";
+import { aboutSchemaGraph, jsonLd } from "@/lib/schema";
 
 export const metadata = pageMetadata(SITE_PAGES.about);
 
@@ -41,6 +42,10 @@ export default async function AboutPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(aboutSchemaGraph()) }}
+      />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="A little about us"

@@ -2,6 +2,7 @@ import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import PageHeader from "@/components/site/PageHeader";
 import GalleryBrowser from "@/components/site/GalleryBrowser";
 import { getGalleryPage } from "@/lib/site-data";
+import { gallerySchemaGraph, jsonLd } from "@/lib/schema";
 
 export const metadata = pageMetadata(SITE_PAGES.gallery);
 
@@ -11,7 +12,12 @@ export default async function GalleryPage() {
   const page = await getGalleryPage(12, 0);
 
   return (
-    <main className="bg-cream-50">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(gallerySchemaGraph(page.images)) }}
+      />
+      <main className="bg-cream-50">
       <PageHeader
         eyebrow="Behind the kitchen door"
         title="Our"
@@ -24,5 +30,6 @@ export default async function GalleryPage() {
         <GalleryBrowser initial={page} />
       </section>
     </main>
+    </>
   );
 }

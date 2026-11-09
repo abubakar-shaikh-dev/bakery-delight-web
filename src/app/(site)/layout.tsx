@@ -18,6 +18,16 @@ export default async function SiteLayout({
 
   return (
     <>
+      {/* React 19 hoists these into <head>: warm the Cloudinary connection
+          before the first treat/gallery image renders. Only when Cloudinary
+          is actually configured — DB-stored images need no cross-origin
+          connection. */}
+      {process.env.CLOUDINARY_CLOUD_NAME && (
+        <>
+          <link rel="preconnect" href="https://res.cloudinary.com" />
+          <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        </>
+      )}
       {/* Route-progress bar in the brand berry; sits above the sticky nav,
           below drawers and toasts. The lib interpolates the color into a
           stylesheet rule, so the token var resolves here. */}

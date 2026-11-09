@@ -2,6 +2,7 @@ import PageHeader from "@/components/site/PageHeader";
 import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import TreatsBrowser from "@/components/site/TreatsBrowser";
 import { getSettings, getTreatsPage } from "@/lib/site-data";
+import { jsonLd, treatsIndexSchemaGraph } from "@/lib/schema";
 
 export const metadata = pageMetadata(SITE_PAGES.treats);
 
@@ -20,6 +21,10 @@ export default async function TreatsPage({
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(treatsIndexSchemaGraph(page.treats)) }}
+      />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="Fresh from the oven"

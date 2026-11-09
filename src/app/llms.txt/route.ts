@@ -1,37 +1,72 @@
 import { SITE_PAGES } from "@/lib/site-pages";
 import { absoluteUrl } from "@/lib/site-url";
+import { getSettings, getTreatsPage } from "@/lib/site-data";
+import { treatFromPrice, waLink } from "@/lib/utils";
 
 /**
  * llms.txt (llmstxt.org): a curated plain-text map of the site for AI
- * agents. Built from the SITE_PAGES registry so every URL follows
- * NEXT_PUBLIC_SITE_URL — no hardcoded domain, same rule as sitemap.ts.
+ * assistants — what the bakery is, how ordering works and which pages carry
+ * which answers. Built from the SITE_PAGES registry and the live menu so
+ * every URL follows NEXT_PUBLIC_SITE_URL — no hardcoded domain, same rule
+ * as sitemap.ts. Full page content lives in /llms-full.txt.
  */
 export const dynamic = "force-dynamic";
 
-export function GET() {
+export async function GET() {
+  const [settings, menu] = await Promise.all([
+    getSettings(),
+    getTreatsPage("", "", 100, 0),
+  ]);
+
+  const pages = Object.values(SITE_PAGES).map((page) => ({
+    label: page.path === "/" ? "Home" : page.title,
+    url: absoluteUrl(page.path),
+    note: page.description,
+  }));
+
+  const treatLines = menu.treats.map((t) => {
+    const from = treatFromPrice(t.price, t.variants);
+    const price =
+      from === null
+        ? "price on request"
+        : `from ₹${from}` +
+          (t.variants.length > 0
+            ? ` (sizes: ${t.variants.map((v) => `${v.label} ₹${v.price}`).join(", ")})`
+            : "");
+    return `- [${t.name}](${absoluteUrl(`/treats/${t.slug}`)}): ${price} — ${t.tagline || t.description}`;
+  });
+
   const lines = [
     "# Bakery Delight",
     "",
-    "> Homemade cakes, cupcakes and treats baked to order in a one-person home kitchen. Visitors browse the menu, view the gallery, read customer reviews and order over WhatsApp or the contact form.",
+    "> Homemade cakes, cupcakes, cookies, brownies and seasonal specials, baked to order in a one-person home kitchen. Customers browse the menu and order over WhatsApp or the contact form — there is no online cart. Prices are in Indian rupees.",
     "",
-    "Treat detail pages live under /treats/[slug]; slugs are linked from the treats page. All content is managed by the owner in a private admin panel.",
+    "## How ordering works",
+    "",
+    ...(settings.whatsappDigits
+      ? [
+          `- WhatsApp: ${settings.whatsappNumber} — order link: ${waLink(settings.whatsappDigits)}`,
+        ]
+      : []),
+    `- Contact form: ${absoluteUrl("/contact")}`,
+    "- The bakery replies within a day; every treat is baked fresh to order in the home kitchen.",
     "",
     "## Pages",
     "",
-    ...Object.values(SITE_PAGES).map(
-      (page) =>
-        `- [${page.title}](${absoluteUrl(page.path)}): ${page.description}`,
-    ),
+    ...pages.map((p) => `- [${p.label}](${p.url}): ${p.note}`),
+    "",
+    "## Treats",
+    "",
+    ...treatLines,
     "",
     "## Machine-readable",
     "",
-    `- Sitemap: ${absoluteUrl("/sitemap.xml")}`,
-    `- Treats JSON: ${absoluteUrl("/api/treats")}`,
-    `- Reviews JSON: ${absoluteUrl("/api/reviews")}`,
-    `- Gallery JSON: ${absoluteUrl("/api/gallery")}`,
+    `- Sitemap (with image entries): ${absoluteUrl("/sitemap.xml")}`,
+    `- llms-full.txt: ${absoluteUrl("/llms-full.txt")} — full catalogue, reviews and contact details in one document`,
+    "",
   ];
 
-  return new Response(`${lines.join("\n")}\n`, {
+  return new Response(lines.join("\n"), {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site-url";
@@ -45,6 +45,19 @@ export const metadata: Metadata = {
     images: [{ url: "/og-default.jpg", width: 1200, height: 630 }],
   },
   twitter: { card: "summary_large_image" },
+  // Optional: set GOOGLE_SITE_VERIFICATION in .env.local to claim the site
+  // in Google Search Console; unset keeps the tag off.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+  },
+};
+
+/** Browser chrome + mobile theme follow the brand page background
+    (cream-100 — the token value, since metadata can't read CSS). */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#fdf2ec",
 };
 
 /** Shared decorative branch, referenced with <use href="#branch"> across the site. */

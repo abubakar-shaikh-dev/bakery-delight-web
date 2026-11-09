@@ -1,6 +1,7 @@
 import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
 import PageHeader from "@/components/site/PageHeader";
 import ContactForm from "@/components/site/ContactForm";
+import Faq, { contactFaqs } from "@/components/site/Faq";
 import {
   IconFacebook,
   IconInstagram,
@@ -12,7 +13,7 @@ import {
   IconYoutube,
 } from "@/components/icons";
 import { getSettings, SettingsData } from "@/lib/site-data";
-import { bakerySchema, jsonLd } from "@/lib/schema";
+import { contactSchemaGraph, jsonLd } from "@/lib/schema";
 import { IconClock } from "@/components/icons";
 
 export const metadata = pageMetadata(SITE_PAGES.contact);
@@ -35,12 +36,13 @@ export default async function ContactPage() {
     { label: "Facebook", href: settings.socials.facebook, icon: <IconFacebook /> },
     { label: "YouTube", href: settings.socials.youtube, icon: <IconYoutube className="h-[19px] w-[19px]" /> },
   ].filter((s) => s.href);
+  const faqs = contactFaqs(settings);
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLd(bakerySchema(settings)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(contactSchemaGraph(settings, faqs)) }}
       />
       <main className="bg-cream-50">
         <PageHeader
@@ -154,6 +156,9 @@ export default async function ContactPage() {
             <ContactForm whatsappDigits={settings.whatsappDigits} />
           </div>
         </section>
+
+        {/* answers mirrored into the FAQPage schema above */}
+        <Faq faqs={faqs} />
       </main>
     </>
   );

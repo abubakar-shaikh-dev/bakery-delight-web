@@ -3,6 +3,7 @@ import PageHeader from "@/components/site/PageHeader";
 import ReviewsBrowser from "@/components/site/ReviewsBrowser";
 import ReviewForm from "@/components/site/ReviewForm";
 import { getReviewsPage } from "@/lib/site-data";
+import { jsonLd, reviewsSchemaGraph } from "@/lib/schema";
 
 export const metadata = pageMetadata(SITE_PAGES.reviews);
 
@@ -13,6 +14,10 @@ export default async function ReviewsPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(reviewsSchemaGraph()) }}
+      />
       <main className="bg-cream-50">
         <PageHeader
           eyebrow="Straight from the heart"

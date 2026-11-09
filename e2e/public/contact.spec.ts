@@ -28,9 +28,11 @@ test.describe("contact page", () => {
       "href",
       `mailto:${FIX.email}`,
     );
+    // The address is quoted twice by design: the "Find us" card and the
+    // FAQ answer (which mirrors the FAQPage schema).
     await expect(
       page.getByRole("main").getByText("12 Flour Lane, Mumbai"),
-    ).toBeVisible();
+    ).toHaveCount(2);
 
     // Only configured socials render — the seed sets Instagram only.
     await expect(

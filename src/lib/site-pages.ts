@@ -75,12 +75,28 @@ export function pageMetadata(page: SitePage): Metadata {
     title: { absolute: fullTitle },
     description: page.description,
     alternates: { canonical: url },
+    // max-image-preview:large keeps Google Images / Discover using the full
+    // picture; unlimited snippets let AI answers quote the pages.
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
     openGraph: {
       title: fullTitle,
       description: page.description,
       url,
       siteName: "Bakery Delight",
       type: "website",
+      // Page-level openGraph replaces the layout's wholesale — carry the
+      // locale so it isn't lost.
+      locale: "en_IN",
       images: [OG_IMAGE],
     },
     twitter: {

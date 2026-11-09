@@ -13,7 +13,7 @@ import {
   getTreatReviews,
 } from "@/lib/site-data";
 import { absoluteUrl } from "@/lib/site-url";
-import { breadcrumbSchema, jsonLd, productSchema } from "@/lib/schema";
+import { jsonLd, treatSchemaGraph } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -40,12 +40,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: absoluteUrl(`/treats/${treat.slug}`),
       siteName: "Bakery Delight",
       type: "website",
-      images: images.map((url) => ({ url, width: 1200, height: 630 })),
+      // Real photo dimensions, not a fake 1200×630 — scrapers fetch and
+      // measure the image either way.
+      images: images.map((url) => ({ url })),
     },
     twitter: {
       card: "summary_large_image",
       title: `${treat.name} — Bakery Delight`,
       description,
+      images,
     },
   };
 }
@@ -76,19 +79,7 @@ export default async function TreatPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLd(productSchema(treat, treatReviews)),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: jsonLd(
-            breadcrumbSchema([
-              { name: "Home", path: "/" },
-              { name: "Treats", path: "/treats" },
-              { name: treat.name, path: `/treats/${treat.slug}` },
-            ]),
-          ),
+          __html: jsonLd(treatSchemaGraph(treat, settings, treatReviews)),
         }}
       />
       <nav

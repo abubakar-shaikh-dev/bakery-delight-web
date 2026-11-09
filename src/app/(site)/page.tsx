@@ -20,7 +20,7 @@ import {
   TreatsLandingSkeleton,
 } from "@/components/site/Skeletons";
 import { SITE_PAGES, pageMetadata } from "@/lib/site-pages";
-import { bakerySchema, jsonLd } from "@/lib/schema";
+import { homeSchemaGraph, jsonLd } from "@/lib/schema";
 
 export const metadata = pageMetadata(SITE_PAGES.home);
 export const dynamic = "force-dynamic";
@@ -51,7 +51,7 @@ export default async function Home() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLd(bakerySchema(settings)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(homeSchemaGraph(settings)) }}
       />
       <Hero reviewStats={reviewStats} />
       <Features />
