@@ -48,6 +48,10 @@ export async function POST(req: NextRequest) {
     avatar: typeof body?.avatar === "string" ? body.avatar : "",
     approved: body?.approved !== false,
     featured: Boolean(body?.featured),
+    treatSlug:
+      typeof body?.treatSlug === "string" && body.treatSlug.trim()
+        ? body.treatSlug.trim().slice(0, 80)
+        : null,
   });
 
   return NextResponse.json({ review }, { status: 201 });

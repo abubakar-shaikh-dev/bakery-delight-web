@@ -144,9 +144,22 @@ export async function seedDb(): Promise<void> {
       updatedAt: new Date(now + i * 60_000),
     }),
   );
+  // Sizes and a two-photo gallery on the headline treat exercise the
+  // detail page's variants card and thumbnail strip.
+  const truffle = treats.find((t) => t.name === FIX.featuredTreat)!;
+  truffle.variants = [
+    { label: "500 g", price: 499 },
+    { label: "1 kg", price: 899 },
+  ];
+  truffle.images = [
+    { url: img0, publicId: null },
+    { url: img1, publicId: null },
+  ];
   await conn.collection("treats").insertMany(treats);
 
   // Two approved (one featured) for the public list; one pending for admin.
+  // Asha's review is linked to Truffle Tower — its page shows it with a
+  // star summary; unlinked treats fall back to featured reviews.
   await conn.collection("reviews").insertMany([
     {
       name: "Asha Verma",
@@ -157,6 +170,7 @@ export async function seedDb(): Promise<void> {
       avatar: "",
       approved: true,
       featured: true,
+      treatSlug: "truffle-tower",
       createdAt: new Date(now),
     },
     {

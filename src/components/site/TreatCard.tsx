@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { IconArrowRight, IconWhatsApp } from "../icons";
-import { waOrderLink } from "@/lib/utils";
+import { treatFromPrice, waOrderLink } from "@/lib/utils";
 
 export default function TreatCard({
   treat,
@@ -17,11 +17,13 @@ export default function TreatCard({
     description: string;
     price: number | null;
     image: string;
+    variants?: Array<{ price: number }>;
   };
   whatsappDigits: string;
   priority?: boolean;
 }) {
   const detailHref = `/treats/${treat.slug}`;
+  const fromPrice = treatFromPrice(treat.price, treat.variants);
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-xs ring-1 ring-cream-300 transition-shadow duration-200 hover:shadow-md">
@@ -62,9 +64,9 @@ export default function TreatCard({
             </h3>
             <p className="mt-0.5 text-[13px] text-stone-500">{treat.tagline}</p>
           </div>
-          {treat.price !== null && (
+          {fromPrice !== null && (
             <p className="shrink-0 rounded-full bg-berry-soft px-3 py-1 text-[13px] font-semibold text-berry-deep tabular-nums">
-              ₹{treat.price}
+              ₹{fromPrice}
               <span className="text-[11px] font-medium text-berry-deep/70">+</span>
             </p>
           )}

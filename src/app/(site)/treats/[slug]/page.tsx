@@ -4,10 +4,13 @@ import { notFound } from "next/navigation";
 import { IconChevronRight } from "@/components/icons";
 import TreatCard from "@/components/site/TreatCard";
 import TreatDetail from "@/components/site/TreatDetail";
+import TreatReviews from "@/components/site/TreatReviews";
 import {
+  getFeaturedReviews,
   getRelatedTreats,
   getSettings,
   getTreatBySlug,
+  getTreatReviews,
 } from "@/lib/site-data";
 import { absoluteUrl } from "@/lib/site-url";
 import { breadcrumbSchema, jsonLd, productSchema } from "@/lib/schema";
@@ -22,6 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!treat) return { title: "Treat not found", robots: { index: false, follow: false } };
   const description =
     treat.tagline || treat.description.slice(0, 150);
+  const toAbsolute = (url: string) =>
+    url.startsWith("http") ? url : absoluteUrl(url);
+  const images = [treat.image, ...treat.images]
+    .filter(Boolean)
+    .map(toAbsolute);
   return {
     title: treat.name,
     description,
@@ -32,17 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: absoluteUrl(`/treats/${treat.slug}`),
       siteName: "Bakery Delight",
       type: "website",
-      images: [
-        treat.image
-          ? {
-              url: treat.image.startsWith("http")
-                ? treat.image
-                : absoluteUrl(treat.image),
-              width: 1200,
-              height: 630,
-            }
-          : { url: absoluteUrl("/og-default.jpg"), width: 1200, height: 630 },
-      ],
+      images: images.map((url) => ({ url, width: 1200, height: 630 })),
     },
     twitter: {
       card: "summary_large_image",
@@ -60,14 +58,25 @@ export default async function TreatPage({ params }: Props) {
   ]);
   if (!treat) notFound();
 
-  const related = await getRelatedTreats(treat, 4);
+  const [related, treatReviews] = await Promise.all([
+    getRelatedTreats(treat, 4),
+    getTreatReviews(treat.slug),
+  ]);
+
+  // The star summary describes this treat only. When it has no reviews of
+  // its own, featured bakery-wide reviews still fill the section — without
+  // the summary and without reaching the Product schema.
+  const own = treatReviews.reviews.length > 0;
+  const shown = own
+    ? treatReviews
+    : { reviews: await getFeaturedReviews(3), total: 0, avg: 0 };
 
   return (
     <main className="bg-cream-50">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLd(productSchema(treat)),
+          __html: jsonLd(productSchema(treat, treatReviews)),
         }}
       />
       <script
@@ -100,6 +109,13 @@ export default async function TreatPage({ params }: Props) {
       <section className="px-5 pt-8 pb-16 sm:px-10 lg:px-[8.5rem]">
         <TreatDetail treat={treat} whatsappDigits={settings.whatsappDigits} />
       </section>
+
+      <TreatReviews
+        reviews={shown.reviews}
+        total={shown.total}
+        avg={shown.avg}
+        own={own}
+      />
 
       {related.length > 0 && (
         <section className="px-5 pb-24 sm:px-10 lg:px-[8.5rem]">

@@ -1,4 +1,5 @@
 import { absoluteUrl } from "./site-url";
+import { treatFromPrice } from "./utils";
 import type { SettingsData, TreatData } from "./site-data";
 
 /**
@@ -27,24 +28,39 @@ export function bakerySchema(settings: SettingsData): object {
   };
 }
 
-/** A treat as a Product — treat detail pages. Offers only when priced. */
-export function productSchema(treat: TreatData): object {
-  const image = treat.image
-    ? treat.image.startsWith("http")
-      ? treat.image
-      : absoluteUrl(treat.image)
-    : undefined;
+/** A treat as a Product — treat detail pages. Offers only when priced.
+    `rating` comes from this treat's own reviews only; site-wide numbers
+    must never describe a single product. */
+export function productSchema(
+  treat: TreatData,
+  rating?: { total: number; avg: number },
+): object {
+  const toAbsolute = (url: string) =>
+    url.startsWith("http") ? url : absoluteUrl(url);
+  const images = [treat.image, ...treat.images].filter(Boolean).map(toAbsolute);
+  const fromPrice = treatFromPrice(treat.price, treat.variants);
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: treat.name,
     description: treat.description || treat.tagline,
-    ...(image ? { image } : {}),
-    ...(treat.price !== null
+    ...(images.length > 0 ? { image: images } : {}),
+    ...(rating && rating.total > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating.avg,
+            reviewCount: rating.total,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+    ...(fromPrice !== null
       ? {
           offers: {
             "@type": "Offer",
-            price: treat.price,
+            price: fromPrice,
             priceCurrency: "INR",
             availability: "https://schema.org/InStock",
             url: absoluteUrl(`/treats/${treat.slug}`),

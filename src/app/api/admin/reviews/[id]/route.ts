@@ -65,6 +65,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
     if (typeof body?.approved === "boolean") update.approved = body.approved;
     if (typeof body?.featured === "boolean") update.featured = body.featured;
+    if ("treatSlug" in (body ?? {})) {
+      update.treatSlug =
+        typeof body.treatSlug === "string" && body.treatSlug.trim()
+          ? body.treatSlug.trim().slice(0, 80)
+          : null;
+    }
 
     const review = await Review.findByIdAndUpdate(id, update, { returnDocument: "after" }).lean();
     if (!review) return NextResponse.json({ error: "Review not found" }, { status: 404 });

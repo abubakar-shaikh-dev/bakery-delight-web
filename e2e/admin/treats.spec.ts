@@ -1,6 +1,7 @@
 import { test, expect } from "../support/fixtures";
 import { seedDb, collection, FIX } from "../support/db";
 import { expectToast } from "../support/helpers";
+import { jpegFile } from "../support/files";
 
 test.describe("admin treats manager", () => {
   test.beforeEach(async () => {
@@ -134,6 +135,103 @@ test.describe("admin treats manager", () => {
     // Homepage features it next to the seeded featured treat.
     await page.goto("/");
     await expect(page.getByText("E2E Headliner")).toBeVisible();
+  });
+
+  test("sizes save with the treat and render on its page", async ({ page }) => {
+    await page.goto("/admin/treats");
+    await page.getByRole("button", { name: "Add treat" }).click();
+    const drawer = page.getByRole("dialog").filter({ hasText: "New treat" });
+
+    await drawer.locator("#treat-name").fill("E2E Sized");
+    await drawer.getByRole("button", { name: "Add size" }).click();
+    await drawer.getByRole("textbox", { name: "Size 1 label" }).fill("Half");
+    await drawer.getByRole("spinbutton", { name: "Size 1 price" }).fill("199");
+    await drawer.getByRole("button", { name: "Add size" }).click();
+    await drawer.getByRole("textbox", { name: "Size 2 label" }).fill("Full");
+    await drawer.getByRole("spinbutton", { name: "Size 2 price" }).fill("349");
+    await drawer.getByRole("button", { name: "Add to menu" }).click();
+    await expectToast(page, "Treat added to the menu.");
+
+    const doc = await (await collection("treats")).findOne({ name: "E2E Sized" });
+    expect(doc?.variants).toEqual([
+      { label: "Half", price: 199 },
+      { label: "Full", price: 349 },
+    ]);
+
+    // The public page lists both sizes.
+    await page.goto("/treats/e2e-sized");
+    const sizes = page.getByRole("radiogroup", { name: "Sizes" });
+    await expect(sizes.getByRole("radio", { name: /Half/ })).toBeVisible();
+    await expect(sizes.getByRole("radio", { name: /Full/ })).toBeVisible();
+  });
+
+  test("a size without a price blocks the save", async ({ page }) => {
+    await page.goto("/admin/treats");
+    await page.getByRole("button", { name: "Add treat" }).click();
+    const drawer = page.getByRole("dialog").filter({ hasText: "New treat" });
+
+    await drawer.locator("#treat-name").fill("E2E Unpriced Size");
+    await drawer.getByRole("button", { name: "Add size" }).click();
+    await drawer.getByRole("textbox", { name: "Size 1 label" }).fill("Half");
+    await drawer.getByRole("button", { name: "Add to menu" }).click();
+
+    await expect(drawer.locator('p[role="alert"]')).toHaveText(
+      "Every size needs a price of 0 or more.",
+    );
+    await expect(drawer.getByRole("spinbutton", { name: "Size 1 price" })).toBeFocused();
+    expect(
+      await (await collection("treats")).countDocuments({ name: "E2E Unpriced Size" }),
+    ).toBe(0);
+  });
+
+  test("photos add and remove through the crop flow, cover stays first", async ({
+    page,
+  }) => {
+    await page.goto("/admin/treats");
+    await page.getByRole("button", { name: "Edit Truffle Tower" }).click();
+    const drawer = page.getByRole("dialog").filter({ hasText: "Edit treat" });
+
+    // Seeded with two photos; the first one is the cover.
+    await expect(drawer.getByText("Cover", { exact: true })).toBeVisible();
+    const before = await (await collection("treats")).findOne({ name: "Truffle Tower" });
+    const countBefore = before?.images?.length ?? 0;
+    const uploadsBefore = await (await collection("uploadedimages")).countDocuments();
+
+    // Both saves emit the same "Treat updated." toast, which outlives 3s —
+    // so waits go on the PUT responses, not the toast.
+    const saveWait = () =>
+      page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/admin/treats/") && r.request().method() === "PUT",
+      );
+
+    // Add a third photo through the shared crop flow.
+    await drawer.locator('input[type="file"]').setInputFiles(await jpegFile());
+    const cropper = page.getByRole("dialog", { name: "Crop photo" });
+    await cropper.getByRole("button", { name: "Crop & upload" }).click();
+    await expectToast(page, "Photo saved.");
+
+    const firstSave = saveWait();
+    await drawer.getByRole("button", { name: "Save changes" }).click();
+    await firstSave;
+    const added = await (await collection("treats")).findOne({ name: "Truffle Tower" });
+    expect(added?.images?.length).toBe(countBefore + 1);
+    // Cover position and bytes are untouched.
+    expect(added?.images?.[0]?.url).toBe(before?.images?.[0]?.url);
+
+    // Remove the added photo — its stored bytes go with it.
+    await page.getByRole("button", { name: "Edit Truffle Tower" }).click();
+    const drawer2 = page.getByRole("dialog").filter({ hasText: "Edit treat" });
+    await drawer2.getByRole("button", { name: `Remove photo ${countBefore + 1}` }).click();
+    const secondSave = saveWait();
+    await drawer2.getByRole("button", { name: "Save changes" }).click();
+    await secondSave;
+
+    const cleaned = await (await collection("treats")).findOne({ name: "Truffle Tower" });
+    expect(cleaned?.images?.length).toBe(countBefore);
+    expect(await (await collection("uploadedimages")).countDocuments()).toBe(
+      uploadsBefore,
+    );
   });
 
   test("edit updates the treat", async ({ page }) => {

@@ -94,27 +94,49 @@ function RatioGlyph({ value }: { value: string }) {
   );
 }
 
-export default function ImageUploader({
-  aspect = 1,
-  label = "Upload photo",
-  initialUrl = "",
-  onUploaded,
-  hint,
+/**
+ * Reads a picked file with the shared guards (type, 8 MB cap) and hands the
+ * data URL to the caller. Every photo field funnels through this.
+ */
+export function readImageFile(
+  file: File | undefined,
+  onDataUrl: (src: string) => void,
+) {
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showToast("That file isn't an image.", "error");
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    showToast("Image is larger than 8 MB — pick a smaller one.", "error");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => onDataUrl(reader.result as string);
+  reader.onerror = () => showToast("Couldn't read that file.", "error");
+  reader.readAsDataURL(file);
+}
+
+/**
+ * The crop-and-upload sheet, shared by every photo field. Takes the picked
+ * data URL, uploads the crop, and reports the stored URL (plus the chosen
+ * ratio when the field offers shapes). Closing is the caller's job.
+ */
+export function CropUploadDialog({
+  src,
+  aspect,
   ratios,
+  onCancel,
+  onUploaded,
 }: {
-  /** width / height, e.g. 1 for square, 4/3 for cards — ignored when `ratios` is set */
+  src: string;
+  /** Ignored when `ratios` is set. */
   aspect?: number;
-  label?: string;
-  initialUrl?: string;
-  onUploaded: (url: string, publicId?: string | null, ratio?: string) => void;
-  hint?: string;
-  /** When set, the crop dialog offers these shapes instead of a fixed one. */
   ratios?: RatioOption[];
+  onCancel: () => void;
+  onUploaded: (url: string, publicId?: string | null, ratio?: string) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [url, setUrl] = useState(initialUrl);
-  const [src, setSrc] = useState<string | null>(null); // data URL being cropped
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [area, setArea] = useState<Area | null>(null);
@@ -130,39 +152,17 @@ export default function ImageUploader({
 
   const activeAspect = ratios ? parseRatio(ratio) : aspect;
 
-  const pickFile = useCallback((file: File | undefined) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      showToast("That file isn't an image.", "error");
-      return;
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      showToast("Image is larger than 8 MB — pick a smaller one.", "error");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setSrc(reader.result as string);
-      setZoom(1);
-      setCrop({ x: 0, y: 0 });
-      setArea(null); // stale pixels from the previous image would enable a wrong crop
-    };
-    reader.onerror = () => showToast("Couldn't read that file.", "error");
-    reader.readAsDataURL(file);
-  }, []);
-
   /* Escape closes the cropper (never mid-upload) — and only the cropper:
      capture + stopPropagation keeps vaul's own Escape dismissal out of it.
      Focus lands on close. */
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!src) return;
     closeRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (!working) {
           e.stopPropagation(); // vaul must not treat this as "dismiss the drawer"
-          setSrc(null);
+          onCancel();
         }
         return;
       }
@@ -187,7 +187,7 @@ export default function ImageUploader({
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [src, working]);
+  }, [working, onCancel]);
 
   const changeRatio = (value: string) => {
     setRatio(value);
@@ -198,7 +198,7 @@ export default function ImageUploader({
     setZoom((z) => Math.min(3, Math.max(1, Math.round((z + dir * 0.25) * 100) / 100)));
 
   async function upload() {
-    if (!src || !area) return;
+    if (!area) return;
     setWorking(true);
     try {
       const blob = await cropToBlob(src, area);
@@ -207,9 +207,8 @@ export default function ImageUploader({
       const res = await fetch("/api/admin/upload", { method: "POST", body: form });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error || "Upload failed.");
-      setUrl(data.url);
       onUploaded(data.url, data.publicId ?? null, ratios ? ratio : undefined);
-      setSrc(null);
+      onCancel();
       showToast(
         data.storage === "cloudinary" ? "Photo uploaded to Cloudinary." : "Photo saved.",
       );
@@ -219,6 +218,175 @@ export default function ImageUploader({
       setWorking(false);
     }
   }
+
+  if (!mounted) return null;
+
+  /* Same anatomy and placement as the other admin drawers. Portalled to
+     body: vaul positions its sheets with a transform, and a transformed
+     ancestor would otherwise clip this fixed overlay inside the form sheet.
+
+     While a vaul drawer is open it sets `pointer-events: none` on body;
+     this portal inherits that and would swallow every drag, swipe and
+     click. `pointer-events-auto` on both layers restores it, and stopping
+     pointerdown keeps vaul's outside-dismiss from closing the form drawer
+     underneath while the user works the cropper. */
+  return createPortal(
+    <>
+      <div
+        aria-hidden="true"
+        onClick={() => {
+          if (!working) onCancel();
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="pointer-events-auto fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Crop photo"
+        onPointerDown={(e) => e.stopPropagation()}
+        className="pointer-events-auto fixed inset-x-0 bottom-0 z-[91] mx-auto w-full max-w-xl overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none animate-[sheet-in_240ms_ease-out] sm:mb-6 sm:rounded-2xl"
+      >
+        <div ref={panelRef} className="flex flex-col">
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 sm:px-8">
+            <p className="font-display text-2xl font-bold text-ink">Crop your photo</p>
+            <button
+              ref={closeRef}
+              onClick={onCancel}
+              aria-label="Close cropper"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+            >
+              <X className="h-5 w-5" strokeWidth={2} />
+            </button>
+          </div>
+
+          {ratios && (
+            <div
+              role="radiogroup"
+              aria-label="Crop shape"
+              className="flex flex-wrap gap-1.5 px-6 pb-4 sm:px-8"
+            >
+              {ratios.map((r) => {
+                const active = r.value === ratio;
+                return (
+                  <button
+                    key={r.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    disabled={working}
+                    onClick={() => changeRatio(r.value)}
+                    className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[12px] font-medium transition-colors disabled:opacity-60 ${
+                      active
+                        ? "border-berry/40 bg-berry-soft text-berry-deep"
+                        : "border-cream-300 bg-white text-stone-500 hover:border-cream-400 hover:text-stone-700"
+                    }`}
+                  >
+                    <RatioGlyph value={r.value} />
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="relative h-[320px] bg-cocoa sm:h-[420px]">
+            <Cropper
+              image={src}
+              crop={crop}
+              zoom={zoom}
+              aspect={activeAspect}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_a, px) => setArea(px)}
+              showGrid
+            />
+          </div>
+
+          <div className="flex items-center gap-3 px-6 py-4 sm:px-8">
+            <button
+              type="button"
+              onClick={() => stepZoom(-1)}
+              aria-label="Zoom out"
+              disabled={zoom <= 1 || working}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry disabled:opacity-40"
+            >
+              <ZoomOut className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.05}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="h-1 w-full accent-berry"
+              aria-label="Zoom"
+            />
+            <button
+              type="button"
+              onClick={() => stepZoom(1)}
+              aria-label="Zoom in"
+              disabled={zoom >= 3 || working}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry disabled:opacity-40"
+            >
+              <ZoomIn className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+          </div>
+
+          <div className="flex justify-end gap-3 border-t border-cream-300 px-6 py-4 sm:px-8">
+            <button
+              onClick={onCancel}
+              disabled={working}
+              className="btn-ghost"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={upload}
+              disabled={working || !area}
+              className="btn-primary"
+            >
+              {working && <LoaderCircle className="h-4 w-4 animate-spin" />}
+              {working ? "Uploading…" : "Crop & upload"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
+}
+
+export default function ImageUploader({
+  aspect = 1,
+  label = "Upload photo",
+  initialUrl = "",
+  onUploaded,
+  hint,
+  ratios,
+}: {
+  /** width / height, e.g. 1 for square, 4/3 for cards — ignored when `ratios` is set */
+  aspect?: number;
+  label?: string;
+  initialUrl?: string;
+  onUploaded: (url: string, publicId?: string | null, ratio?: string) => void;
+  hint?: string;
+  /** When set, the crop dialog offers these shapes instead of a fixed one. */
+  ratios?: RatioOption[];
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [url, setUrl] = useState(initialUrl);
+  const [src, setSrc] = useState<string | null>(null); // data URL being cropped
+
+  const pickFile = useCallback(
+    (file: File | undefined) => {
+      readImageFile(file, (dataUrl) => {
+        setSrc(dataUrl);
+      });
+    },
+    [],
+  );
 
   return (
     <div>
@@ -289,144 +457,18 @@ export default function ImageUploader({
         </button>
       )}
 
-      {/* cropper sheet — same anatomy and placement as the other admin drawers.
-          Portalled to body: vaul positions its sheets with a transform, and a
-          transformed ancestor would otherwise clip this fixed overlay inside
-          the form sheet.
-
-          While a vaul drawer is open it sets `pointer-events: none` on body;
-          this portal inherits that and would swallow every drag, swipe and
-          click. `pointer-events-auto` on both layers restores it, and
-          stopping pointerdown keeps vaul's outside-dismiss from closing the
-          form drawer underneath while the user works the cropper. */}
-      {mounted &&
-        src &&
-        createPortal(
-          <>
-            <div
-              aria-hidden="true"
-              onClick={() => {
-                if (!working) setSrc(null);
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="pointer-events-auto fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm"
-            />
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Crop photo"
-              onPointerDown={(e) => e.stopPropagation()}
-              className="pointer-events-auto fixed inset-x-0 bottom-0 z-[91] mx-auto w-full max-w-xl overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none animate-[sheet-in_240ms_ease-out] sm:mb-6 sm:rounded-2xl"
-            >
-            <div ref={panelRef} className="flex flex-col">
-              <div className="flex items-center justify-between px-6 pt-5 pb-3 sm:px-8">
-                <p className="font-display text-2xl font-bold text-ink">Crop your photo</p>
-                <button
-                  ref={closeRef}
-                  onClick={() => setSrc(null)}
-                  aria-label="Close cropper"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
-                >
-                  <X className="h-5 w-5" strokeWidth={2} />
-                </button>
-              </div>
-
-              {ratios && (
-                <div
-                  role="radiogroup"
-                  aria-label="Crop shape"
-                  className="flex flex-wrap gap-1.5 px-6 pb-4 sm:px-8"
-                >
-                  {ratios.map((r) => {
-                    const active = r.value === ratio;
-                    return (
-                      <button
-                        key={r.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        disabled={working}
-                        onClick={() => changeRatio(r.value)}
-                        className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[12px] font-medium transition-colors disabled:opacity-60 ${
-                          active
-                            ? "border-berry/40 bg-berry-soft text-berry-deep"
-                            : "border-cream-300 bg-white text-stone-500 hover:border-cream-400 hover:text-stone-700"
-                        }`}
-                      >
-                        <RatioGlyph value={r.value} />
-                        {r.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="relative h-[320px] bg-cocoa sm:h-[420px]">
-                <Cropper
-                  image={src}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={activeAspect}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={(_a, px) => setArea(px)}
-                  showGrid
-                />
-              </div>
-
-              <div className="flex items-center gap-3 px-6 py-4 sm:px-8">
-                <button
-                  type="button"
-                  onClick={() => stepZoom(-1)}
-                  aria-label="Zoom out"
-                  disabled={zoom <= 1 || working}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry disabled:opacity-40"
-                >
-                  <ZoomOut className="h-4 w-4" strokeWidth={1.8} />
-                </button>
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.05}
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                  className="h-1 w-full accent-berry"
-                  aria-label="Zoom"
-                />
-                <button
-                  type="button"
-                  onClick={() => stepZoom(1)}
-                  aria-label="Zoom in"
-                  disabled={zoom >= 3 || working}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry disabled:opacity-40"
-                >
-                  <ZoomIn className="h-4 w-4" strokeWidth={1.8} />
-                </button>
-              </div>
-
-              <div className="flex justify-end gap-3 border-t border-cream-300 px-6 py-4 sm:px-8">
-                <button
-                  onClick={() => setSrc(null)}
-                  disabled={working}
-                  className="btn-ghost"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={upload}
-                  disabled={working || !area}
-                  className="btn-primary"
-                >
-                  {working && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                  {working ? "Uploading…" : "Crop & upload"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>,
-          document.body,
-        )}
+      {src && (
+        <CropUploadDialog
+          src={src}
+          aspect={aspect}
+          ratios={ratios}
+          onCancel={() => setSrc(null)}
+          onUploaded={(uploadedUrl, publicId, chosenRatio) => {
+            setUrl(uploadedUrl);
+            onUploaded(uploadedUrl, publicId, chosenRatio);
+          }}
+        />
+      )}
     </div>
   );
 }

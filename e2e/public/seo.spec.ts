@@ -194,6 +194,12 @@ test.describe("SEO — JSON-LD schema", () => {
     expect(offers["price"]).toBe(499);
     expect(offers["priceCurrency"]).toBe("INR");
 
+    // The star summary comes from this treat's linked reviews only.
+    const rating = product!["aggregateRating"] as Record<string, unknown>;
+    expect(rating).toBeTruthy();
+    expect(rating["ratingValue"]).toBe(5);
+    expect(rating["reviewCount"]).toBe(1);
+
     const crumbs = found.find((s) => s["@type"] === "BreadcrumbList");
     expect(crumbs).toBeTruthy();
     const items = crumbs!["itemListElement"] as Array<{

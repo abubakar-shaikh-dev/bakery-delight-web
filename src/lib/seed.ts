@@ -4,6 +4,11 @@
  * fallbacks if the database is unreachable.
  */
 
+export interface SeedVariant {
+  label: string;
+  price: number;
+}
+
 export interface SeedTreat {
   name: string;
   slug: string;
@@ -15,6 +20,7 @@ export interface SeedTreat {
   featured: boolean;
   weight: string;
   serves: string;
+  variants?: SeedVariant[];
 }
 
 export const seedTreats: SeedTreat[] = [
@@ -30,6 +36,10 @@ export const seedTreats: SeedTreat[] = [
     featured: true,
     weight: "500 g – 2 kg",
     serves: "8–20",
+    variants: [
+      { label: "500 g", price: 699 },
+      { label: "1 kg", price: 1299 },
+    ],
   },
   {
     name: "Cupcakes",
@@ -43,6 +53,10 @@ export const seedTreats: SeedTreat[] = [
     featured: true,
     weight: "60 g each",
     serves: "Box of 6 or 12",
+    variants: [
+      { label: "Box of 6", price: 289 },
+      { label: "Box of 12", price: 549 },
+    ],
   },
   {
     name: "Cookies",
@@ -56,6 +70,10 @@ export const seedTreats: SeedTreat[] = [
     featured: true,
     weight: "250 g box",
     serves: "Makes 10–12 cookies",
+    variants: [
+      { label: "250 g box", price: 199 },
+      { label: "500 g box", price: 379 },
+    ],
   },
   {
     name: "Brownies",
@@ -69,6 +87,10 @@ export const seedTreats: SeedTreat[] = [
     featured: true,
     weight: "350 g tray",
     serves: "6–8",
+    variants: [
+      { label: "350 g tray", price: 249 },
+      { label: "700 g tray", price: 469 },
+    ],
   },
   {
     name: "Seasonal Specials",
@@ -94,6 +116,7 @@ export interface SeedReview {
   avatar: string;
   approved: boolean;
   featured: boolean;
+  treatSlug?: string | null;
 }
 
 export const seedReviews: SeedReview[] = [

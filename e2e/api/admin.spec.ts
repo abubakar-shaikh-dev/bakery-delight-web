@@ -18,12 +18,22 @@ test.describe("admin API", () => {
     expect(await noName.json()).toEqual({ error: "Name is required." });
 
     const ok = await request.post("/api/admin/treats", {
-      data: { name: "API Treat", price: 42, featured: true },
+      data: {
+        name: "API Treat",
+        price: 42,
+        featured: true,
+        variants: [
+          { label: "Small", price: 42 },
+          { label: "", price: 5 }, // dropped — no label
+          { label: "Bad", price: "x" }, // dropped — no usable price
+        ],
+      },
     });
     expect(ok.status()).toBe(201);
     const { treat } = await ok.json();
     expect(treat.slug).toBe("api-treat");
     expect(treat.category).toBe("Cakes"); // default when absent
+    expect(treat.variants).toEqual([{ label: "Small", price: 42 }]);
   });
 
   test("invalid ids and missing docs answer 400/404", async ({ request }) => {

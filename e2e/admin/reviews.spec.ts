@@ -131,6 +131,38 @@ test.describe("admin reviews manager", () => {
     await expect(page.getByText("Rohit Menon")).toBeHidden();
   });
 
+  test("a review can be linked to a treat and shows on its page", async ({
+    page,
+  }) => {
+    await page.goto("/admin/reviews");
+    await page
+      .getByRole("article")
+      .filter({ hasText: "Rohit Menon" })
+      .getByRole("button", { name: "Edit review" })
+      .click();
+    const drawer = page.getByRole("dialog").filter({ hasText: "Edit review" });
+
+    await drawer.locator("#review-treat").selectOption({ label: "Kulfi Dream" });
+    await drawer.getByRole("button", { name: "Save review" }).click();
+    await expectToast(page, "Review updated.");
+
+    const doc = await (await collection("reviews")).findOne({ name: "Rohit Menon" });
+    expect(doc?.treatSlug).toBe("kulfi-dream");
+
+    // The row names the linked treat.
+    await expect(
+      page
+        .getByRole("article")
+        .filter({ hasText: "Rohit Menon" })
+        .getByText("Kulfi Dream"),
+    ).toBeVisible();
+
+    // And the treat's page shows the review with its own star summary.
+    await page.goto("/treats/kulfi-dream");
+    await expect(page.getByText("Rohit Menon")).toBeVisible();
+    await expect(page.getByText("1 review for this treat")).toBeVisible();
+  });
+
   test("delete asks first and then removes", async ({ page }) => {
     await page.goto("/admin/reviews");
     await page

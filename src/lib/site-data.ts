@@ -62,6 +62,11 @@ export const getSettings = cache(async function getSettings(): Promise<SettingsD
   );
 });
 
+export interface TreatVariantData {
+  label: string;
+  price: number;
+}
+
 export interface TreatData {
   _id: string;
   name: string;
@@ -74,6 +79,9 @@ export interface TreatData {
   featured: boolean;
   weight: string;
   serves: string;
+  variants: TreatVariantData[];
+  /** Detail-page gallery URLs; `image` stays the cover. */
+  images: string[];
 }
 
 const mapTreat = (d: Record<string, unknown>): TreatData => ({
@@ -88,9 +96,28 @@ const mapTreat = (d: Record<string, unknown>): TreatData => ({
   featured: d.featured as boolean,
   weight: (d.weight as string) ?? "",
   serves: (d.serves as string) ?? "",
+  // Older documents predate both fields — normalise whatever comes back.
+  variants: Array.isArray(d.variants)
+    ? (d.variants as Array<Record<string, unknown>>)
+        .map((v) => ({
+          label: typeof v?.label === "string" ? v.label : "",
+          price: Number(v?.price),
+        }))
+        .filter((v) => v.label !== "" && Number.isFinite(v.price) && v.price >= 0)
+    : [],
+  images: Array.isArray(d.images)
+    ? (d.images as Array<Record<string, unknown>>)
+        .map((i) => (typeof i?.url === "string" ? i.url : ""))
+        .filter(Boolean)
+    : [],
 });
 
-const fallbackTreatList: TreatData[] = fallbackTreats.map((t) => ({ ...t, _id: t.slug }));
+const fallbackTreatList: TreatData[] = fallbackTreats.map((t) => ({
+  ...t,
+  _id: t.slug,
+  variants: t.variants ?? [],
+  images: [],
+}));
 
 export function getFeaturedTreats(limit = 5): Promise<TreatData[]> {
   return withDB<TreatData[]>(
@@ -204,6 +231,44 @@ export function getFeaturedReviews(limit = 3): Promise<ReviewData[]> {
       return docs.map(mapReview);
     },
     fallbackReviewList,
+  );
+}
+
+export interface TreatReviewsData {
+  reviews: ReviewData[];
+  total: number;
+  avg: number;
+}
+
+/**
+ * Reviews written about one treat — newest first, with the aggregate the
+ * Product schema needs. Never mixes in site-wide reviews: the aggregate
+ * rating must describe this treat, not the bakery. An empty result is the
+ * honest "no reviews yet", which the page may fill with featured ones.
+ */
+export function getTreatReviews(
+  slug: string,
+  limit = 6,
+): Promise<TreatReviewsData> {
+  const clean = String(slug ?? "").trim().slice(0, 80);
+  return withDB<TreatReviewsData>(
+    async () => {
+      const filter = { approved: true, treatSlug: clean };
+      const [docs, total, agg] = await Promise.all([
+        Review.find(filter).sort({ createdAt: -1 }).limit(limit).lean(),
+        Review.countDocuments(filter),
+        Review.aggregate<{ _id: null; avg: number }>([
+          { $match: filter },
+          { $group: { _id: null, avg: { $avg: "$rating" } } },
+        ]),
+      ]);
+      return {
+        reviews: docs.map(mapReview),
+        total,
+        avg: total === 0 ? 0 : Math.round((agg[0]?.avg ?? 0) * 10) / 10,
+      };
+    },
+    { reviews: [], total: 0, avg: 0 },
   );
 }
 

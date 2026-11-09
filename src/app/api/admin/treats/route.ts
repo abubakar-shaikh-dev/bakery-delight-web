@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { safeJson } from "@/lib/api";
 import { connectDB } from "@/lib/db";
-import Treat, { slugify } from "@/models/Treat";
+import Treat, { normalizeImages, normalizeVariants, slugify } from "@/models/Treat";
 import { escapeRegex } from "@/lib/utils";
 
 async function GET_(req: NextRequest) {
@@ -73,6 +73,8 @@ async function POST_(req: NextRequest) {
     featured: Boolean(body?.featured),
     weight: typeof body?.weight === "string" ? body.weight.trim().slice(0, 40) : "",
     serves: typeof body?.serves === "string" ? body.serves.trim().slice(0, 40) : "",
+    variants: normalizeVariants(body?.variants),
+    images: normalizeImages(body?.images),
   });
 
   return NextResponse.json({ treat }, { status: 201 });

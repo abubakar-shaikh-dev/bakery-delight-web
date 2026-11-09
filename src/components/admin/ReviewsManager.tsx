@@ -25,6 +25,7 @@ interface Review {
   avatar: string;
   approved: boolean;
   featured: boolean;
+  treatSlug?: string | null;
   createdAt: string;
 }
 
@@ -37,6 +38,7 @@ interface FormState {
   socialUrl: string;
   approved: boolean;
   featured: boolean;
+  treatSlug: string;
 }
 
 const emptyForm: FormState = {
@@ -48,12 +50,14 @@ const emptyForm: FormState = {
   socialUrl: "",
   approved: true,
   featured: false,
+  treatSlug: "",
 };
 
 const PLATFORMS = ["", "Instagram", "WhatsApp", "Facebook", "Google", "Other"];
 
 export default function ReviewsManager() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [treats, setTreats] = useState<Array<{ name: string; slug: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
@@ -112,7 +116,26 @@ export default function ReviewsManager() {
 
   useEffect(() => {
     load(filter);
+    // For the "Linked treat" select — names only, best-effort.
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/treats?limit=200");
+        if (!res.ok) return;
+        const data = await res.json();
+        setTreats(
+          (data.treats ?? []).map((t: { name: string; slug: string }) => ({
+            name: t.name,
+            slug: t.slug,
+          })),
+        );
+      } catch {
+        /* the select simply lists no treats */
+      }
+    })();
   }, [filter, load]);
+
+  const treatName = (slug: string | null | undefined) =>
+    (treats.find((t) => t.slug === slug)?.name ?? slug) || null;
 
   async function toggleApproved(r: Review) {
     if (busyId) return;
@@ -289,6 +312,11 @@ export default function ReviewsManager() {
                         month: "short",
                         year: "numeric",
                       })}
+                      {r.treatSlug && (
+                        <span className="rounded-full bg-berry-soft px-2 py-0.5 text-[11px] font-semibold text-berry-deep">
+                          {treatName(r.treatSlug)}
+                        </span>
+                      )}
                       <SocialIcon platform={r.socialPlatform} url={r.socialUrl} />
                     </p>
                   </div>
@@ -320,6 +348,7 @@ export default function ReviewsManager() {
                         socialUrl: r.socialUrl ?? "",
                         approved: r.approved,
                         featured: r.featured,
+                        treatSlug: r.treatSlug ?? "",
                       })
                     }
                     aria-label="Edit review"
@@ -467,6 +496,28 @@ export default function ReviewsManager() {
                   className={inputCls}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className={labelCls} htmlFor="review-treat">
+                Linked treat
+              </label>
+              <select
+                id="review-treat"
+                value={form.treatSlug}
+                onChange={(e) => setForm({ ...form, treatSlug: e.target.value })}
+                className={`${inputCls} select-field`}
+              >
+                <option value="">None — reviews page only</option>
+                {treats.map((t) => (
+                  <option key={t.slug} value={t.slug}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              <p className="field-hint">
+                Linked reviews also show on that treat&rsquo;s page.
+              </p>
             </div>
 
             <div className="flex gap-3">

@@ -23,7 +23,36 @@ export function waLink(digits: string, text?: string) {
   return `https://wa.me/${digits}${t}`;
 }
 
-/** The standard pre-filled order message, used by every treat CTA. */
-export function waOrderLink(digits: string, treatName: string) {
-  return waLink(digits, `Hi Bakery Delight, I'd like to order ${treatName}.`);
+/** The standard pre-filled order message, used by every treat CTA.
+    A chosen size lands in the message so the baker knows the ask. */
+export function waOrderLink(
+  digits: string,
+  treatName: string,
+  variantLabel?: string,
+) {
+  const suffix = variantLabel ? ` (${variantLabel})` : "";
+  return waLink(
+    digits,
+    `Hi Bakery Delight, I'd like to order ${treatName}${suffix}.`,
+  );
+}
+
+/**
+ * The honest "from" price of a treat: the smaller of the standalone price
+ * and the cheapest listed size. Cards, the detail page and JSON-LD all
+ * read this so they never disagree.
+ */
+export function treatFromPrice(
+  price: number | null,
+  variants?: Array<{ price: number }>,
+): number | null {
+  const prices = [
+    ...(typeof price === "number" && Number.isFinite(price) && price >= 0
+      ? [price]
+      : []),
+    ...(variants ?? [])
+      .map((v) => v.price)
+      .filter((p) => Number.isFinite(p) && p >= 0),
+  ];
+  return prices.length ? Math.min(...prices) : null;
 }

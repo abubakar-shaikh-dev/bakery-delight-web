@@ -12,9 +12,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import ImageUploader from "./ImageUploader";
 import { AdminDrawer, ConfirmDrawer } from "./Drawer";
 import LoadError from "./LoadError";
+import TreatPhotos, { type TreatPhoto } from "./TreatPhotos";
 import { TreatRowSkeleton } from "./Skeletons";
 import { showToast } from "./AdminShell";
 
@@ -31,6 +31,14 @@ interface Treat {
   featured: boolean;
   weight?: string;
   serves?: string;
+  variants?: Array<{ label: string; price: number }>;
+  images?: TreatPhoto[];
+}
+
+/** A size row in the form — the price stays text until save validates it. */
+interface VariantRow {
+  label: string;
+  price: string;
 }
 
 interface FormState {
@@ -40,10 +48,11 @@ interface FormState {
   tagline: string;
   description: string;
   price: string;
-  image: string;
   featured: boolean;
   weight: string;
   serves: string;
+  variants: VariantRow[];
+  images: TreatPhoto[];
 }
 
 const emptyForm: FormState = {
@@ -53,10 +62,11 @@ const emptyForm: FormState = {
   tagline: "",
   description: "",
   price: "",
-  image: "",
   featured: false,
   weight: "",
   serves: "",
+  variants: [],
+  images: [],
 };
 
 export default function TreatsManager() {
@@ -67,12 +77,15 @@ export default function TreatsManager() {
   const [q, setQ] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
   const [baseline, setBaseline] = useState<FormState | null>(null);
-  const [imagePublicId, setImagePublicId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<Treat | null>(null);
   const [removing, setRemoving] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; price?: string }>({});
+  const [errors, setErrors] = useState<{
+    name?: string;
+    price?: string;
+    variants?: string;
+  }>({});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reqId = useRef(0);
 
@@ -86,7 +99,6 @@ export default function TreatsManager() {
     setForm(null);
     setBaseline(null);
     setErrors({});
-    setImagePublicId(null);
   }, []);
 
   /* Unsaved work: every drawer exit routes through the discard check. */
@@ -148,20 +160,45 @@ export default function TreatsManager() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!form) return;
-    const next: { name?: string; price?: string } = {};
+    const next: { name?: string; price?: string; variants?: string } = {};
     if (!form.name.trim()) next.name = "Give the treat a name.";
     if (form.price !== "") {
       const n = Number(form.price);
       if (Number.isNaN(n)) next.price = "Price should be a number.";
       else if (n < 0) next.price = "Price can't be negative.";
     }
-    if (next.name || next.price) {
+    // A named size without a usable price would silently vanish on save —
+    // hold the drawer open and say so instead.
+    if (
+      form.variants.some(
+        (v) =>
+          v.label.trim() !== "" &&
+          (v.price.trim() === "" || Number.isNaN(Number(v.price)) || Number(v.price) < 0),
+      )
+    ) {
+      next.variants = "Every size needs a price of 0 or more.";
+    }
+    if (next.name || next.price || next.variants) {
       setErrors(next);
-      (document.getElementById(next.name ? "treat-name" : "treat-price") as HTMLInputElement | null)
-        ?.focus();
+      if (next.variants) {
+        const bad = form.variants.findIndex(
+          (v) =>
+            v.label.trim() !== "" &&
+            (v.price.trim() === "" || Number.isNaN(Number(v.price)) || Number(v.price) < 0),
+        );
+        (document.getElementById(`variant-price-${bad}`) as HTMLInputElement | null)?.focus();
+      } else {
+        (document.getElementById(next.name ? "treat-name" : "treat-price") as HTMLInputElement | null)
+          ?.focus();
+      }
       return;
     }
     setErrors({});
+
+    // The cover stays in sync: it is the first photo, feeding cards, OG
+    // tags and the JSON-LD image.
+    const images = form.images.filter((p) => p.url);
+    const cover = images[0] ?? null;
 
     setSaving(true);
     try {
@@ -171,11 +208,15 @@ export default function TreatsManager() {
         tagline: form.tagline,
         description: form.description,
         price: form.price === "" ? null : Math.max(0, Number(form.price)),
-        image: form.image,
-        cloudinaryPublicId: imagePublicId,
+        image: cover?.url ?? "",
+        cloudinaryPublicId: cover?.publicId ?? null,
         featured: form.featured,
         weight: form.weight,
         serves: form.serves,
+        variants: form.variants
+          .filter((v) => v.label.trim() !== "")
+          .map((v) => ({ label: v.label.trim(), price: Math.max(0, Number(v.price)) })),
+        images,
       };
       const res = await fetch(
         form._id ? `/api/admin/treats/${form._id}` : "/api/admin/treats",
@@ -309,9 +350,14 @@ export default function TreatsManager() {
                       No photo
                     </span>
                   )}
-                  {t.price === null && (
+                  {t.price === null && !(t.variants && t.variants.length > 0) && (
                     <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
                       No price
+                    </span>
+                  )}
+                  {t.variants && t.variants.length > 0 && (
+                    <span className="rounded-full bg-berry-soft px-2 py-0.5 text-[11px] font-semibold text-berry-deep">
+                      {t.variants.length} {t.variants.length === 1 ? "size" : "sizes"}
                     </span>
                   )}
                 </div>
@@ -324,6 +370,17 @@ export default function TreatsManager() {
               <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => {
+                    // The photo list owns the cover: an older treat with only
+                    // the legacy single image still shows it as the cover.
+                    const photos: TreatPhoto[] =
+                      t.images && t.images.length > 0
+                        ? t.images.map((p) => ({
+                            url: p.url,
+                            publicId: p.publicId ?? null,
+                          }))
+                        : t.image
+                          ? [{ url: t.image, publicId: t.cloudinaryPublicId ?? null }]
+                          : [];
                     openForm({
                       _id: t._id,
                       name: t.name,
@@ -331,12 +388,15 @@ export default function TreatsManager() {
                       tagline: t.tagline,
                       description: t.description,
                       price: t.price === null ? "" : String(t.price),
-                      image: t.image,
                       featured: t.featured,
                       weight: t.weight ?? "",
                       serves: t.serves ?? "",
+                      variants: (t.variants ?? []).map((v) => ({
+                        label: v.label,
+                        price: String(v.price),
+                      })),
+                      images: photos,
                     });
-                    setImagePublicId(t.cloudinaryPublicId ?? null);
                   }}
                   aria-label={`Edit ${t.name}`}
                   className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry hover:text-white hover:ring-berry"
@@ -495,6 +555,95 @@ export default function TreatsManager() {
               </div>
             </div>
 
+            {/* sizes — the price list buyers pick from on the treat's page */}
+            <div>
+              <div className="flex items-center justify-between">
+                <span className={labelCls}>Sizes</span>
+                {form.variants.length < 8 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm({ ...form, variants: [...form.variants, { label: "", price: "" }] })
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-medium text-stone-600 ring-1 ring-cream-300 transition-colors hover:text-berry hover:ring-berry/40"
+                  >
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                    Add size
+                  </button>
+                )}
+              </div>
+              {form.variants.length === 0 ? (
+                <p className="field-hint">
+                  Optional — for treats sold in more than one size, like 500 g and 1 kg.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {form.variants.map((v, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <input
+                        value={v.label}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            variants: form.variants.map((row, j) =>
+                              j === i ? { ...row, label: e.target.value } : row,
+                            ),
+                          })
+                        }
+                        placeholder={i === 0 ? "500 g" : "1 kg"}
+                        aria-label={`Size ${i + 1} label`}
+                        className={`${inputCls} flex-1`}
+                        maxLength={40}
+                      />
+                      <div className="relative w-32 shrink-0">
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] text-stone-400"
+                        >
+                          ₹
+                        </span>
+                        <input
+                          id={`variant-price-${i}`}
+                          data-variant-price
+                          type="number"
+                          min={0}
+                          step="1"
+                          inputMode="decimal"
+                          value={v.price}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              variants: form.variants.map((row, j) =>
+                                j === i ? { ...row, price: e.target.value } : row,
+                              ),
+                            })
+                          }
+                          placeholder="0"
+                          aria-label={`Size ${i + 1} price`}
+                          className={`${inputCls} pl-9`}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm({ ...form, variants: form.variants.filter((_, j) => j !== i) })
+                        }
+                        aria-label={`Remove size ${i + 1}`}
+                        className="grid h-[42px] w-10 shrink-0 place-items-center rounded-xl bg-white text-stone-400 ring-1 ring-cream-300 transition-colors hover:bg-danger-soft hover:text-danger hover:ring-danger/30"
+                      >
+                        <Trash2 className="h-4 w-4" strokeWidth={1.8} />
+                      </button>
+                    </div>
+                  ))}
+                  {errors.variants && (
+                    <p className="field-invalid" role="alert">
+                      {errors.variants}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* optional details — shown on the treat's public page */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -548,16 +697,10 @@ export default function TreatsManager() {
               />
             </div>
 
-            <ImageUploader
+            <TreatPhotos
               key={form._id ?? "new-treat"}
-              aspect={4 / 3}
-              label="Treat photo"
-              hint="Cropped to 4:3 — shown on the treats page"
-              initialUrl={form.image}
-              onUploaded={(url, publicId) => {
-                setForm((f) => (f ? { ...f, image: url } : f));
-                setImagePublicId(publicId ?? null);
-              }}
+              photos={form.images}
+              onChange={(images) => setForm((f) => (f ? { ...f, images } : f))}
             />
 
             <div className="flex justify-end gap-3 pt-2">

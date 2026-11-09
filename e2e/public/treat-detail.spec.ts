@@ -16,7 +16,8 @@ test.describe("treat detail page", () => {
     );
     await expect(page.getByText("Test Cakes").first()).toBeVisible();
     await expect(page.getByText("A tower of dark truffles")).toBeVisible();
-    await expect(page.getByText("₹499")).toBeVisible();
+    // The price line leads with the "from" price; the sizes list repeats it.
+    await expect(page.getByText("₹499")).toHaveCount(2);
     await expect(page.getByText("onwards")).toBeVisible();
 
     // Spec card — both optional fields present.
@@ -37,6 +38,70 @@ test.describe("treat detail page", () => {
       "href",
       /^https:\/\/wa\.me\/919876543210\?text=/,
     );
+  });
+
+  test("sizes render as a picker and carry into the order message", async ({
+    page,
+  }) => {
+    await page.goto("/treats/truffle-tower");
+
+    const sizes = page.getByRole("radiogroup", { name: "Sizes" });
+    await expect(sizes.getByRole("radio", { name: /500 g/ })).toBeVisible();
+    await expect(sizes.getByRole("radio", { name: /1 kg/ })).toBeVisible();
+
+    // Choosing a size pins the exact price and names it in the message.
+    await sizes.getByRole("radio", { name: /1 kg/ }).click();
+    await expect(
+      page.locator("p").filter({ hasText: /^₹899$/ }),
+    ).toBeVisible();
+    await expect(page.getByText("onwards")).toHaveCount(0);
+
+    const cta = page.locator('a[href*="wa.me"][href*="Truffle%20Tower"]');
+    await expect(cta).toHaveAttribute(
+      "href",
+      /Truffle%20Tower%20\(1%20kg\)/,
+    );
+  });
+
+  test("extra photos swap the main image from the thumbnail strip", async ({
+    page,
+  }) => {
+    await page.goto("/treats/truffle-tower");
+
+    const strip = page.getByRole("group", { name: "Truffle Tower photos" });
+    const thumbs = strip.getByRole("button");
+    await expect(thumbs).toHaveCount(2);
+
+    const main = page.getByRole("img", { name: "Truffle Tower" });
+    const before = await main.getAttribute("src");
+    await thumbs.nth(1).click();
+    await expect(thumbs.nth(1)).toHaveAttribute("aria-pressed", "true");
+    expect(await main.getAttribute("src")).not.toBe(before);
+  });
+
+  test("a review linked to the treat shows with its star summary", async ({
+    page,
+  }) => {
+    await page.goto("/treats/truffle-tower");
+
+    await expect(
+      page.getByRole("heading", { name: "What people say" }),
+    ).toBeVisible();
+    await expect(page.getByText("Asha Verma")).toBeVisible();
+    await expect(page.getByText("1 review for this treat")).toBeVisible();
+  });
+
+  test("a treat without its own reviews falls back to featured ones", async ({
+    page,
+  }) => {
+    await page.goto("/treats/kulfi-dream");
+
+    await expect(
+      page.getByRole("heading", { name: "What people say" }),
+    ).toBeVisible();
+    await expect(page.getByText("Asha Verma")).toBeVisible();
+    // The fallback carries no treat-specific star summary.
+    await expect(page.getByText("for this treat")).toHaveCount(0);
   });
 
   test("a partially filled treat shows only its weight", async ({ page }) => {
@@ -68,7 +133,11 @@ test.describe("treat detail page", () => {
       page.getByRole("heading", { name: "More from the oven" }),
     ).toBeVisible();
 
-    const related = page.getByRole("article");
+    // Scoped to the related section — review cards are articles too.
+    const related = page
+      .locator("section")
+      .filter({ hasText: "More from the oven" })
+      .getByRole("article");
     await expect(related).toHaveCount(4);
     // Same-category treats sort first (menu order, featured-first).
     await expect(related.first()).toContainText("Kulfi Dream");
