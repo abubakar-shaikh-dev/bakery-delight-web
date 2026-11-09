@@ -344,7 +344,10 @@ export default function GalleryManager() {
         tone="discard"
         body="The cropped photo and caption haven't been added yet — closing now loses them."
         confirmLabel="Discard"
-        onConfirm={closeForm}
+        onConfirm={() => {
+          setDiscardOpen(false);
+          closeForm();
+        }}
       />
     </div>
   );

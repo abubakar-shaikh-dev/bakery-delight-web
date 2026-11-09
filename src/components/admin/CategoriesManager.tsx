@@ -353,7 +353,10 @@ export default function CategoriesManager() {
         tone="discard"
         body="This category hasn't been saved — closing now loses your edits."
         confirmLabel="Discard"
-        onConfirm={closeForm}
+        onConfirm={() => {
+          setDiscardOpen(false);
+          closeForm();
+        }}
       />
     </div>
   );

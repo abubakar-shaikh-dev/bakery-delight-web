@@ -544,7 +544,10 @@ export default function ReviewsManager() {
         tone="discard"
         body="This review hasn't been saved — closing now loses your edits."
         confirmLabel="Discard"
-        onConfirm={closeForm}
+        onConfirm={() => {
+          setDiscardOpen(false);
+          closeForm();
+        }}
       />
     </div>
   );

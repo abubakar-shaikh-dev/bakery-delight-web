@@ -602,7 +602,10 @@ export default function TreatsManager() {
         tone="discard"
         body="This treat hasn't been saved — closing now loses your edits."
         confirmLabel="Discard"
-        onConfirm={closeForm}
+        onConfirm={() => {
+          setDiscardOpen(false);
+          closeForm();
+        }}
       />
     </div>
   );
