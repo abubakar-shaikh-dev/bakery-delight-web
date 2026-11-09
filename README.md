@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bakery Delight
 
-## Getting Started
+A marketing + ordering site for a one-person home bakery. Visitors browse treats, read reviews and order over WhatsApp; the owner manages all content through a password-protected admin panel at `/admin`.
 
-First, run the development server:
+Built with Next.js 16 (App Router), React 19, Tailwind CSS 4, MongoDB via Mongoose, Cloudinary image uploads and JWT session auth.
+
+## Getting started
+
+Requires Node 20.9+ and [pnpm](https://pnpm.io).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local   # then fill in your values
+pnpm dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.example` documents every variable — MongoDB connection, admin credentials, the JWT secret, Cloudinary keys and the public site URL. Nothing works without `.env.local`; if MongoDB is unreachable the public site falls back to bundled seed content instead of erroring.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command           | What it does                                        |
+| ----------------- | --------------------------------------------------- |
+| `pnpm dev`        | Dev server on :3000                                 |
+| `pnpm build`      | Production build                                    |
+| `pnpm start`      | Serve the production build                          |
+| `pnpm lint`       | ESLint                                              |
+| `pnpm test:e2e`   | Playwright suite against a throwaway DB on :3100    |
+| `pnpm test:e2e:ui`| Same, in the headed Playwright debugger             |
 
-## Learn More
+## Testing
 
-To learn more about Next.js, take a look at the following resources:
+The e2e suite covers every public page (including SEO rules), every admin manager, the API routes and a public-to-admin flow. It never touches real content: tests run against the `bakerydelight_test` database on the same MongoDB server as `.env.local`, and Cloudinary is disabled so uploads fall back to DB storage.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+First run: `pnpm exec playwright install chromium`. Then `pnpm test:e2e` (needs a reachable MongoDB and real admin credentials in `.env.local`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentation
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [AGENTS.md](./AGENTS.md) — architecture, conventions, testing and the rules agents follow when working in this repo
+- [DESIGN.md](./DESIGN.md) — design direction: color tokens, type scale, spacing, motion and voice

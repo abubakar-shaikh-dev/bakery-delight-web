@@ -25,9 +25,20 @@ pnpm dev        # dev server on :3000
 pnpm build      # production build
 pnpm start      # serve the production build
 pnpm lint       # eslint
+pnpm test:e2e   # Playwright suite against a throwaway DB on :3100
 ```
 
-Environment lives in `.env.local` (Mongo URI, Cloudinary keys, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`). Never commit it. Optional: `RESEND_API_KEY` + `NOTIFY_EMAIL` enable best-effort email alerts for new contact messages and pending reviews (`src/lib/notify.ts`); unset means the feature is off.
+Start from `.env.example`: copy it to `.env.local` and fill in real values. Never commit `.env.local`. Optional: `RESEND_API_KEY` + `NOTIFY_EMAIL` enable best-effort email alerts for new contact messages and pending reviews (`src/lib/notify.ts`); unset means the feature is off.
+
+## Testing
+
+The Playwright suite in `e2e/` is the main safety net — run `pnpm test:e2e` before finishing any behavior change.
+
+- **Specs mirror the app**: `e2e/public/*` (every public page, including `seo.spec.ts`), `e2e/admin/*` (auth + every manager), `e2e/api/*`, and `e2e/flows/public-to-admin.spec.ts`. When you add a page or admin section, add a matching spec.
+- **Isolation**: tests run against the `bakerydelight_test` database on the same Mongo server as `.env.local` — the owner's real content is never touched. Cloudinary vars are blanked so uploads fall back to DB storage (`src/lib/storage.ts`). Never point the suite at another database.
+- **Credentials** come from `.env.local` via `e2e/support/env.ts`, so the suite needs a real `.env.local` and a reachable MongoDB, just like `pnpm dev`. First run also needs `pnpm exec playwright install chromium`.
+- **Sequential by design**: `workers: 1` because specs share the test database. Don't parallelize without changing that.
+- **The suite enforces the SEO rules** (registry copy lengths, canonical tags, JSON-LD) from the SEO section — update `src/lib/site-pages.ts` and `e2e/public/seo.spec.ts` together.
 
 ## Architecture
 
@@ -64,6 +75,26 @@ Environment lives in `.env.local` (Mongo URI, Cloudinary keys, `ADMIN_EMAIL`, `A
 - **Motion**: `transition-colors` / `transition-shadow` / `transition-[border-color,box-shadow]` — never `transition-all`, never animated layout properties, no looping decoration. Skeletons and spinners are the only allowed loops.
 - **File placement**: new public sections are `src/components/` server components when possible; interactivity goes into `src/components/site/*` client components. Keep `page.tsx` files thin (data + composition).
 
+A component reads like the left, never the right:
+
+```tsx
+// Good — tokens, one transition property, no trailing period
+<Link href="/treats" className="rounded-full bg-berry px-7 py-3.5 font-medium text-white transition-colors hover:bg-berry-deep">
+  Explore Treats
+</Link>
+
+// Bad — raw hex, transition-all, trailing period, unstyled anchor
+<a href="/treats" className="rounded-full px-7 py-3.5 text-white transition-all hover:bg-[#9d2f5f]">
+  Explore Treats.
+</a>
+```
+
+## Boundaries
+
+- ✅ **Always**: finish with `pnpm build`, `pnpm lint` and `pnpm test:e2e`; read DESIGN.md before touching UI; keep every public page's `loading.tsx` in sync with its layout; use `absoluteUrl()` for any absolute link.
+- ⚠️ **Ask first**: schema changes in `src/models/`, new dependencies, edits to `src/lib/auth.ts`, `src/proxy.ts` or `playwright.config.ts` (auth, DB isolation and the GPU workaround are deliberate), and changes to the seed content people see when the DB is down.
+- 🚫 **Never**: commit `.env.local` or real credentials; hardcode a domain; use raw hex or `transition-all` in components; remove the robots/noindex protection on `/admin` and `/api`; delete or skip a failing e2e test you can't fix.
+
 ## SEO
 
 The checklists come from the skill at `.agent/skills/nextjs-seo-audit/SKILL.md` (run it whenever touching meta tags, headings or page structure). The rules below make compliance nearly automatic:
@@ -88,6 +119,7 @@ The checklists come from the skill at `.agent/skills/nextjs-seo-audit/SKILL.md` 
 ## Before you finish
 
 1. `pnpm build` passes.
-2. `pnpm lint` — the 7 pre-existing `react-hooks/set-state-in-effect` errors in the managers' `load()` patterns are known; don't add new ones.
-3. Check mobile (375px), tablet (~820px) and desktop (1440px): no horizontal overflow, skeletons match layout, touch targets ≥ 40px, hover-revealed controls also work on touch (see GalleryManager's delete button for the pattern).
-4. New UI follows DESIGN.md — if you need a new color, add a token, not a hex.
+2. `pnpm lint` — the 7 pre-existing `react-hooks/set-state-in-effect` errors in the managers' `load()` patterns are known; don't add new ones. Zero warnings is the bar.
+3. `pnpm test:e2e` passes (needs `.env.local` and a reachable MongoDB; see Testing).
+4. Check mobile (375px), tablet (~820px) and desktop (1440px): no horizontal overflow, skeletons match layout, touch targets ≥ 40px, hover-revealed controls also work on touch (see GalleryManager's delete button for the pattern).
+5. New UI follows DESIGN.md — if you need a new color, add a token, not a hex.
