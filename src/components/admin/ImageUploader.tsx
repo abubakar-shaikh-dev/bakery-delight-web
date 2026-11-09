@@ -23,6 +23,9 @@ export interface RatioOption {
 
 const subscribeNoop = () => () => {};
 
+/** Longest output side — covers 2× retina for everything the site renders. */
+const MAX_OUTPUT_PX = 1600;
+
 /** Crop an HTML image to the selected area, outputting a JPEG blob. */
 async function cropToBlob(src: string, crop: Area): Promise<Blob> {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -33,10 +36,18 @@ async function cropToBlob(src: string, crop: Area): Promise<Blob> {
     img.src = src;
   });
 
+  // Downscale huge crops (phone photos) so uploads stay small and fast.
+  const scale = Math.min(
+    1,
+    MAX_OUTPUT_PX / Math.max(crop.width, crop.height),
+  );
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(crop.width);
-  canvas.height = Math.round(crop.height);
+  canvas.width = Math.max(1, Math.round(crop.width * scale));
+  canvas.height = Math.max(1, Math.round(crop.height * scale));
   const ctx = canvas.getContext("2d")!;
+  // JPEG has no alpha — matte transparent PNGs onto white instead of black.
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(
     image,
     crop.x,
@@ -45,8 +56,8 @@ async function cropToBlob(src: string, crop: Area): Promise<Blob> {
     crop.height,
     0,
     0,
-    crop.width,
-    crop.height,
+    canvas.width,
+    canvas.height,
   );
 
   return new Promise((resolve, reject) => {
@@ -134,18 +145,27 @@ export default function ImageUploader({
       setSrc(reader.result as string);
       setZoom(1);
       setCrop({ x: 0, y: 0 });
+      setArea(null); // stale pixels from the previous image would enable a wrong crop
     };
     reader.onerror = () => showToast("Couldn't read that file.", "error");
     reader.readAsDataURL(file);
   }, []);
 
-  /* Escape closes the cropper (never mid-upload); focus lands on close. */
+  /* Escape closes the cropper (never mid-upload) — and only the cropper:
+     capture + stopPropagation keeps vaul's own Escape dismissal out of it.
+     Focus lands on close. */
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!src) return;
     closeRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !working) setSrc(null);
+      if (e.key === "Escape") {
+        if (!working) {
+          e.stopPropagation(); // vaul must not treat this as "dismiss the drawer"
+          setSrc(null);
+        }
+        return;
+      }
       // keep Tab cycling inside the dialog, like the site's other modals
       if (e.key === "Tab" && panelRef.current) {
         const items = Array.from(
@@ -165,8 +185,8 @@ export default function ImageUploader({
         }
       }
     };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
   }, [src, working]);
 
   const changeRatio = (value: string) => {
@@ -185,8 +205,8 @@ export default function ImageUploader({
       const form = new FormData();
       form.append("file", blob, "crop.jpg");
       const res = await fetch("/api/admin/upload", { method: "POST", body: form });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed.");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Upload failed.");
       setUrl(data.url);
       onUploaded(data.url, data.publicId ?? null, ratios ? ratio : undefined);
       setSrc(null);
@@ -272,7 +292,13 @@ export default function ImageUploader({
       {/* cropper sheet — same anatomy and placement as the other admin drawers.
           Portalled to body: vaul positions its sheets with a transform, and a
           transformed ancestor would otherwise clip this fixed overlay inside
-          the form sheet. */}
+          the form sheet.
+
+          While a vaul drawer is open it sets `pointer-events: none` on body;
+          this portal inherits that and would swallow every drag, swipe and
+          click. `pointer-events-auto` on both layers restores it, and
+          stopping pointerdown keeps vaul's outside-dismiss from closing the
+          form drawer underneath while the user works the cropper. */}
       {mounted &&
         src &&
         createPortal(
@@ -282,13 +308,15 @@ export default function ImageUploader({
               onClick={() => {
                 if (!working) setSrc(null);
               }}
-              className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm"
+              onPointerDown={(e) => e.stopPropagation()}
+              className="pointer-events-auto fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm"
             />
             <div
               role="dialog"
               aria-modal="true"
               aria-label="Crop photo"
-              className="fixed inset-x-0 bottom-0 z-[91] mx-auto w-full max-w-xl overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none animate-[sheet-in_240ms_ease-out] sm:mb-6 sm:rounded-2xl"
+              onPointerDown={(e) => e.stopPropagation()}
+              className="pointer-events-auto fixed inset-x-0 bottom-0 z-[91] mx-auto w-full max-w-xl overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none animate-[sheet-in_240ms_ease-out] sm:mb-6 sm:rounded-2xl"
             >
             <div ref={panelRef} className="flex flex-col">
               <div className="flex items-center justify-between px-6 pt-5 pb-3 sm:px-8">
