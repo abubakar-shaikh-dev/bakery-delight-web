@@ -25,7 +25,6 @@ interface MongooseCache {
   seeded: boolean;
 }
 
-/* eslint-disable no-var */
 declare global {
   var __mongooseCache: MongooseCache | undefined;
 }
@@ -40,7 +39,7 @@ const cache: MongooseCache =
  * this once per database — content the owner deletes stays deleted even
  * when a collection is emptied and the server restarts.
  */
-async function ensureSeed(conn: Mongoose) {
+async function ensureSeed() {
   if (cache.seeded) return;
   cache.seeded = true;
 
@@ -106,7 +105,7 @@ export async function connectDB(): Promise<Mongoose | null> {
         serverSelectionTimeoutMS: 8000,
       })
       .then(async (conn) => {
-        await ensureSeed(conn);
+        await ensureSeed();
         return conn;
       })
       .catch((err) => {

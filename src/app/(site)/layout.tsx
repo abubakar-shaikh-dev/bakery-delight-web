@@ -33,8 +33,20 @@ export default async function SiteLayout({
         initialPosition={0.25}
         zIndex={70}
       />
+      {/* Keyboard users' first tab stop: jumps past the nav. Sits above the
+          viewport until focused, then drops in as a berry pill. No transition
+          — focus reveals it instantly, per the motion rules. */}
+      <a
+        href="#main"
+        className="fixed left-4 top-4 z-[80] -translate-y-24 rounded-full bg-berry px-5 py-3 text-[15px] font-medium text-white focus:translate-y-0"
+      >
+        Skip to content
+      </a>
       <SiteNav />
-      {children}
+      {/* Skip-link target. tabIndex lets focus land here before the content. */}
+      <div id="main" tabIndex={-1} className="outline-none">
+        {children}
+      </div>
       <Footer settings={settings} />
       <BackToTop />
     </>
