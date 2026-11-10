@@ -29,11 +29,11 @@ export default function TreatOrderPanel({
   return (
     <div>
       {chosen ? (
-        <p className="mt-6 font-display text-3xl font-bold text-berry tabular-nums md:text-4xl">
+        <p className="mt-6 font-display text-[28px] font-bold text-berry tabular-nums md:text-[40px]">
           ₹{chosen.price}
         </p>
       ) : fromPrice !== null ? (
-        <p className="mt-6 font-display text-3xl font-bold text-berry tabular-nums md:text-4xl">
+        <p className="mt-6 font-display text-[28px] font-bold text-berry tabular-nums md:text-[40px]">
           ₹{fromPrice}
           <span className="ml-2 align-baseline font-sans text-sm font-medium text-stone-500">
             onwards
@@ -43,7 +43,7 @@ export default function TreatOrderPanel({
 
       {variants.length > 0 && (
         <div
-          role="radiogroup"
+          role="group"
           aria-label="Sizes"
           className={`max-w-md rounded-2xl bg-cream-100 p-5 ring-1 ring-cream-300 ${
             showPrice ? "mt-5" : "mt-6"
@@ -55,8 +55,7 @@ export default function TreatOrderPanel({
               <button
                 key={`${v.label}-${i}`}
                 type="button"
-                role="radio"
-                aria-checked={i === selected}
+                aria-pressed={i === selected}
                 onClick={() => setSelected(i)}
                 className={`flex w-full items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-left transition-colors ${
                   i === selected
@@ -93,7 +92,7 @@ export default function TreatOrderPanel({
             <IconWhatsApp className="h-5 w-5" />
             Order on WhatsApp
           </a>
-          <p className="-rotate-2 select-none font-hand text-xl font-semibold leading-[1.15] text-berry-ink">
+          <p className="-rotate-2 select-none font-hand text-[22px] font-semibold leading-[1.15] text-berry-ink">
             baked to order
             <br />
             with love

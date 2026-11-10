@@ -1,5 +1,7 @@
+import Link from "next/link";
 import ReviewCard from "./ReviewCard";
 import StarRating from "./StarRating";
+import { IconArrowRight } from "../icons";
 import type { ReviewData } from "@/lib/site-data";
 
 /**
@@ -22,16 +24,25 @@ export default function TreatReviews({
 
   return (
     <section className="px-5 pb-24 sm:px-10 lg:px-[8.5rem]">
-      <h2 className="font-display text-3xl font-bold leading-none text-ink md:text-4xl">
-        What people say
-        <span className="ml-5 -mt-2 inline-block h-px w-20 bg-cream-400 align-middle md:w-24"></span>
-      </h2>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h2 className="font-display text-[28px] font-bold leading-none text-ink md:text-[40px]">
+          What people say
+          <span className="ml-5 -mt-2 inline-block h-px w-20 bg-cream-400 align-middle md:w-24"></span>
+        </h2>
+        <Link
+          href="/reviews"
+          className="group flex items-center gap-2 text-[15px] font-medium text-berry-deep"
+        >
+          All reviews
+          <IconArrowRight className="transition-[opacity,transform] duration-200 group-hover:translate-x-1" />
+        </Link>
+      </div>
 
       {own && total > 0 && (
         <div className="mt-4 flex items-center gap-2.5">
           <StarRating rating={Math.round(avg)} className="h-4 w-4" />
           <p className="text-[13px] text-stone-500">
-            {avg} out of 5 · {total} {total === 1 ? "review" : "reviews"} for
+            {avg.toFixed(1)} out of 5 · {total} {total === 1 ? "review" : "reviews"} for
             this treat
           </p>
         </div>

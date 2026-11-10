@@ -56,7 +56,7 @@ export default function SiteNav() {
 
   return (
     <header
-      className={`sticky top-0 z-40 flex min-h-[72px] w-full items-center justify-between gap-4 px-5 md:min-h-[88px] md:px-10 lg:px-[8.5rem] transition-[background-color,box-shadow,border-color] duration-300 ${surface}`}
+      className={`sticky top-0 z-40 flex min-h-[72px] w-full items-center justify-between gap-4 px-5 md:min-h-[88px] sm:px-10 lg:px-[8.5rem] transition-[background-color,box-shadow,border-color] duration-300 ${surface}`}
     >
       <Link
         href="/"
@@ -77,7 +77,7 @@ export default function SiteNav() {
       {/* Desktop pill nav (≥ lg) */}
       <nav
         aria-label="Primary"
-        className="hidden items-center gap-8 rounded-full bg-white/55 py-3.5 px-8 text-[15px] font-medium text-ink shadow-xs backdrop-blur-md lg:flex"
+        className="hidden items-center gap-8 rounded-full bg-cream-50 py-3.5 px-8 text-[15px] font-medium text-ink shadow-xs ring-1 ring-cream-300 lg:flex"
       >
         {NAV_LINKS.map((l) => {
           const active = isActive(l.href);
@@ -91,13 +91,11 @@ export default function SiteNav() {
               }`}
             >
               {l.label}
-              {/* underline dot — rises in on hover, stays for the active page */}
+              {/* underline dot — fades in on hover, stays for the active page */}
               <span
                 aria-hidden="true"
                 className={`absolute -bottom-3.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-berry transition-[opacity,transform] duration-200 ${
-                  active
-                    ? "scale-100 opacity-100"
-                    : "scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100"
+                  active ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                 }`}
               />
             </Link>
@@ -109,7 +107,7 @@ export default function SiteNav() {
         <Link
           href="/treats"
           aria-label="Search treats"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-[background-color,color,transform] hover:text-berry-deep active:scale-95 sm:bg-white/70 sm:shadow-xs sm:backdrop-blur-md sm:hover:bg-white"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-[opacity,transform] hover:text-berry-deep active:scale-95 sm:bg-white sm:shadow-xs sm:hover:shadow-md"
         >
           <IconSearch />
         </Link>

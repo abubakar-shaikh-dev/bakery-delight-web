@@ -7,9 +7,9 @@ import type { ReviewData } from "@/lib/site-data";
 
 export default function Testimonials({ reviews }: { reviews: ReviewData[] }) {
   return (
-    <section id="reviews" className="px-5 pt-8 pb-20 md:px-10 lg:px-[8.5rem]">
+    <section id="reviews" className="px-5 pt-8 pb-20 sm:px-10 lg:px-[8.5rem]">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h2 className="font-display text-4xl font-bold leading-none text-ink md:text-[40px]">
+        <h2 className="font-display text-[28px] font-bold leading-none text-ink md:text-[40px]">
           What Our Customers Say
           <span className="ml-5 -mt-2 inline-block h-px w-20 bg-cream-400 align-middle md:w-24"></span>
         </h2>
@@ -18,7 +18,7 @@ export default function Testimonials({ reviews }: { reviews: ReviewData[] }) {
           className="group flex items-center gap-2 text-[15px] font-medium text-berry-deep"
         >
           View All Reviews
-          <IconArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
+          <IconArrowRight className="transition-[opacity,transform] duration-200 group-hover:translate-x-1" />
         </Link>
       </div>
 
@@ -54,14 +54,14 @@ export default function Testimonials({ reviews }: { reviews: ReviewData[] }) {
                     className="h-11 w-11 rounded-full object-cover ring-2 ring-berry-soft"
                   />
                 ) : (
-                  <span className="grid h-11 w-11 place-items-center rounded-full bg-berry-soft font-display text-lg font-bold text-berry-deep">
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-berry-soft text-[15px] font-semibold text-berry-deep">
                     {r.name.charAt(0).toUpperCase()}
                   </span>
                 )}
                 <div>
                   <p className="text-[14px] font-semibold text-ink">{r.name}</p>
                   <div className="mt-1">
-                    <StarRating rating={r.rating} className="h-3.5 w-3.5" />
+                    <StarRating rating={r.rating} className="h-4 w-4" />
                   </div>
                 </div>
               </div>

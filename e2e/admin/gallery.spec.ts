@@ -18,7 +18,7 @@ test.describe("admin gallery manager", () => {
     await page.goto("/admin/gallery");
     await page.getByRole("button", { name: "Add photo" }).click();
     const drawer = page.getByRole("dialog").filter({ hasText: "New photo" });
-    await drawer.getByRole("button", { name: "Add to gallery" }).click();
+    await drawer.getByRole("button", { name: "Add photo" }).click();
     await expect(drawer.getByRole("alert")).toHaveText(
       "Choose and crop a photo first.",
     );
@@ -49,20 +49,20 @@ test.describe("admin gallery manager", () => {
     await page.locator('input[type="file"]').setInputFiles(await jpegFile());
 
     // The cropper sheet opens with the three shape options.
-    const cropper = page.getByRole("dialog", { name: "Crop photo" });
+    const cropper = page.getByRole("dialog", { name: "Crop your photo" });
     await expect(cropper.getByText("Crop your photo")).toBeVisible();
-    const shape = cropper.getByRole("radiogroup", { name: "Crop shape" });
-    await expect(shape.getByRole("radio", { name: "Square" })).toHaveAttribute(
-      "aria-checked",
+    const shape = cropper.getByRole("group", { name: "Crop shape" });
+    await expect(shape.getByRole("button", { name: "Square" })).toHaveAttribute(
+      "aria-pressed",
       "true",
     );
 
     // Keyboard activation — pointer clicks race the cropper's rAF loop on
     // software-rendered headless Chromium.
-    const wide = shape.getByRole("radio", { name: "Wide" });
+    const wide = shape.getByRole("button", { name: "Wide" });
     await wide.focus();
     await page.keyboard.press("Enter");
-    await expect(wide).toHaveAttribute("aria-checked", "true");
+    await expect(wide).toHaveAttribute("aria-pressed", "true");
 
     // Zoom controls respond.
     const zoomIn = cropper.getByRole("button", { name: "Zoom in" });
@@ -83,7 +83,7 @@ test.describe("admin gallery manager", () => {
     // The drawer now previews the upload; fill the caption and save.
     await expect(drawer.getByRole("button", { name: "Replace" })).toBeVisible();
     await drawer.locator("#gallery-caption").fill("E2E wide crop");
-    await drawer.getByRole("button", { name: "Add to gallery" }).click();
+    await drawer.getByRole("button", { name: "Add photo" }).click();
 
     await expectToast(page, "Photo added to the gallery.");
     await expect(page.getByText("16 photos")).toBeVisible();
@@ -110,7 +110,7 @@ test.describe("admin gallery manager", () => {
     await page.getByRole("button", { name: "Add photo" }).click();
     await page.locator('input[type="file"]').setInputFiles(await jpegFile());
 
-    const cropper = page.getByRole("dialog", { name: "Crop photo" });
+    const cropper = page.getByRole("dialog", { name: "Crop your photo" });
     await expect(cropper).toBeVisible();
     await cropper.getByRole("button", { name: "Cancel" }).focus();
     await page.keyboard.press("Enter");
@@ -118,7 +118,7 @@ test.describe("admin gallery manager", () => {
 
     // Still no image chosen — the inline error still applies on submit.
     const drawer = page.getByRole("dialog").filter({ hasText: "New photo" });
-    await drawer.getByRole("button", { name: "Add to gallery" }).focus();
+    await drawer.getByRole("button", { name: "Add photo" }).focus();
     await page.keyboard.press("Enter");
     await expect(drawer.getByRole("alert")).toHaveText(
       "Choose and crop a photo first.",
@@ -149,13 +149,13 @@ test.describe("admin gallery manager", () => {
     const first = page.getByRole("figure").first();
 
     await first.getByRole("button", { name: "Delete photo" }).click();
-    const confirm = page.getByRole("dialog").filter({ hasText: "Remove this photo?" });
+    const confirm = page.getByRole("dialog").filter({ hasText: "Delete this photo?" });
     await expect(
       confirm.getByText("It will also be deleted from storage."),
     ).toBeVisible();
-    await confirm.getByRole("button", { name: "Remove" }).click();
+    await confirm.getByRole("button", { name: "Delete" }).click();
 
-    await expectToast(page, "Photo removed.");
+    await expectToast(page, "Photo deleted.");
     await expect(page.getByText("14 photos")).toBeVisible();
 
     const uploadsAfter = await (await collection("uploadedimages")).countDocuments();

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { X } from "lucide-react";
 import { IconArrowRight, IconCupcake } from "../icons";
 
 export const NAV_LINKS = [
@@ -78,17 +79,17 @@ export default function FullscreenMenu() {
     triggerRef.current?.focus({ preventScroll: true });
   }, []);
 
-  // Escape closes; focus moves to the close button once the wipe has settled.
+  // Escape closes; focus moves to the close button as soon as the menu opens
+  // so Tab can never land back on the page behind the overlay.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
     document.addEventListener("keydown", onKey);
-    const t = window.setTimeout(() => closeRef.current?.focus({ preventScroll: true }), 520);
+    closeRef.current?.focus({ preventScroll: true });
     return () => {
       document.removeEventListener("keydown", onKey);
-      window.clearTimeout(t);
     };
   }, [open, close]);
 
@@ -123,7 +124,7 @@ export default function FullscreenMenu() {
         aria-controls="site-menu"
         aria-label="Open menu"
         onClick={() => setOpen(true)}
-        className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-[background-color,color,transform] hover:text-berry-deep active:scale-95 sm:bg-white/70 sm:shadow-xs sm:backdrop-blur-md sm:hover:bg-white lg:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-[opacity,transform] hover:text-berry-deep active:scale-95 sm:bg-white sm:shadow-xs sm:hover:shadow-md lg:hidden"
       >
         <span className="flex flex-col gap-[5px]">
           <span className="h-[2px] w-5 rounded-full bg-current" />
@@ -178,16 +179,7 @@ export default function FullscreenMenu() {
                   onClick={close}
                   className="grid h-11 w-11 place-items-center rounded-full bg-white text-ink shadow-xs ring-1 ring-cream-300 transition-[background-color,box-shadow,transform] hover:bg-cream-50 hover:shadow-md active:scale-95"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  >
-                    <path d="M18 6 6 18M6 6l12 12" />
-                  </svg>
+                  <X className="h-5 w-5" strokeWidth={2} />
                 </button>
               </div>
 

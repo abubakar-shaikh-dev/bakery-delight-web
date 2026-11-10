@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
+  Menu,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
@@ -53,7 +54,7 @@ function ToastHost() {
       className="fixed bottom-5 left-1/2 z-[100] -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0"
     >
       <div
-        className={`flex items-center gap-2.5 rounded-full px-5 py-3 text-[13px] font-medium text-white shadow-xl ${
+        className={`flex items-center gap-2.5 rounded-full px-5 py-3 text-[13px] font-medium text-white shadow-lg ${
           toast.kind === "success" ? "bg-success" : "bg-berry-deep"
         }`}
       >
@@ -139,7 +140,21 @@ export default function AdminShell({
     loadUnread();
   }, [loadUnread, pathname]);
 
-  // Escape closes the mobile drawer.
+  // Escape closes the mobile drawer. Focus moves into it on open (so Tab can
+  // never land on the page behind the overlay) and back to the trigger on close.
+  const drawerTriggerRef = useRef<HTMLButtonElement>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
+  const drawerAsideRef = useRef<HTMLElement>(null);
+  const drawerWasOpen = useRef(false);
+  useEffect(() => {
+    if (drawerOpen) {
+      drawerWasOpen.current = true;
+      drawerCloseRef.current?.focus({ preventScroll: true });
+    } else if (drawerWasOpen.current) {
+      drawerWasOpen.current = false;
+      drawerTriggerRef.current?.focus({ preventScroll: true });
+    }
+  }, [drawerOpen]);
   useEffect(() => {
     if (!drawerOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -148,6 +163,24 @@ export default function AdminShell({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [drawerOpen]);
+
+  // Keep Tab cycling inside the mobile drawer while it is open.
+  const trapDrawerTab = (e: React.KeyboardEvent) => {
+    if (e.key !== "Tab" || !drawerAsideRef.current) return;
+    const items = Array.from(
+      drawerAsideRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"),
+    ).filter((el) => el.getClientRects().length > 0);
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
 
   async function logout() {
     setLoggingOut(true);
@@ -169,7 +202,7 @@ export default function AdminShell({
         <div key={section.label}>
           {/* a label for a lone item is noise — label only real groups */}
           {section.items.length > 1 && !collapsed && (
-            <p className="mb-2 px-3 text-[11px] font-medium text-white/40">
+            <p className="mb-2 px-3 text-[11px] font-medium text-cocoa-muted">
               {section.label}
             </p>
           )}
@@ -185,8 +218,9 @@ export default function AdminShell({
                     className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition-colors ${
                       active
                         ? "bg-berry text-white"
-                        : "text-white/65 hover:bg-white/8 hover:text-white"
+                        : "text-cocoa-muted hover:bg-white/8 hover:text-white"
                     } ${collapsed ? "justify-center" : ""}`}
+                    aria-current={active ? "page" : undefined}
                   >
                     <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
                     {!collapsed && <span>{item.label}</span>}
@@ -215,10 +249,10 @@ export default function AdminShell({
       </span>
       {!collapsed && (
         <span className="leading-tight">
-          <span className="block font-display text-[19px] font-bold text-cream-50">
+          <span className="block font-display text-[22px] font-bold text-cream-50">
             Bakery Delight
           </span>
-          <span className="block text-[11px] font-medium text-white/50">
+          <span className="block text-[11px] font-medium text-cocoa-muted">
             Admin panel
           </span>
         </span>
@@ -234,7 +268,7 @@ export default function AdminShell({
         <a
           href="/"
           target="_blank"
-          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-white/65 transition-colors hover:bg-white/8 hover:text-white ${
+          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-cocoa-muted transition-colors hover:bg-white/8 hover:text-white ${
             collapsed ? "justify-center" : ""
           }`}
         >
@@ -267,12 +301,12 @@ export default function AdminShell({
         <button
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute -right-3.5 top-20 grid h-7 w-7 place-items-center rounded-full bg-berry text-white transition-colors hover:bg-berry-deep"
+          className="absolute -right-4 top-20 grid h-8 w-8 place-items-center rounded-full bg-berry text-white transition-colors hover:bg-berry-deep"
         >
           {collapsed ? (
-            <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={2} />
+            <PanelLeftOpen className="h-4 w-4" strokeWidth={2} />
           ) : (
-            <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={2} />
+            <PanelLeftClose className="h-4 w-4" strokeWidth={2} />
           )}
         </button>
       </aside>
@@ -280,25 +314,27 @@ export default function AdminShell({
       {/* mobile drawer */}
       <div
         className={`fixed inset-0 z-50 lg:hidden ${drawerOpen ? "" : "pointer-events-none"}`}
-        aria-hidden={!drawerOpen}
         inert={!drawerOpen}
       >
         <div
           onClick={() => setDrawerOpen(false)}
-          className={`absolute inset-0 bg-black/45 backdrop-blur-sm transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-cocoa-3/60 transition-[opacity,transform] duration-300 ${
             drawerOpen ? "opacity-100" : "opacity-0"
           }`}
         />
         <aside
-          className={`absolute inset-y-0 left-0 w-[280px] shadow-2xl transition-transform duration-300 ${
+          ref={drawerAsideRef}
+          onKeyDown={trapDrawerTab}
+          className={`absolute inset-y-0 left-0 w-[280px] shadow-lg transition-[opacity,transform] duration-300 ${
             drawerOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
           {sidebarInner}
           <button
+            ref={drawerCloseRef}
             onClick={() => setDrawerOpen(false)}
             aria-label="Close menu"
-            className="absolute right-3 top-6 grid h-11 w-11 place-items-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            className="absolute right-3 top-6 grid h-11 w-11 place-items-center rounded-full text-cocoa-muted transition-colors hover:bg-white/10 hover:text-white"
           >
             <X className="h-5 w-5" strokeWidth={2} />
           </button>
@@ -311,15 +347,14 @@ export default function AdminShell({
           collapsed ? "lg:ml-[84px]" : "lg:ml-[264px]"
         }`}
       >
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-cream-300/60 bg-cream-200/85 px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-cream-300/60 bg-cream-200 px-4 sm:px-6">
           <button
+            ref={drawerTriggerRef}
             onClick={() => setDrawerOpen(true)}
             aria-label="Open menu"
             className="grid h-10 w-10 place-items-center rounded-xl text-stone-600 transition-colors hover:bg-white hover:shadow-xs lg:hidden"
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
+            <Menu className="h-5 w-5" strokeWidth={2} />
           </button>
           <h1 className="font-display text-[22px] font-bold text-ink sm:text-2xl">
             {title}
@@ -328,13 +363,13 @@ export default function AdminShell({
             <a
               href="/"
               target="_blank"
-              className="hidden items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-600 shadow-xs ring-1 ring-cream-300/70 transition-colors hover:text-berry sm:flex"
+              className="hidden items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-600 shadow-xs ring-1 ring-cream-300/70 transition-colors hover:text-berry-deep sm:flex"
             >
-              <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
+              <Globe className="h-4 w-4" strokeWidth={1.8} />
               View site
             </a>
             <span className="flex items-center gap-2.5 rounded-full bg-white py-1.5 pl-1.5 pr-4 shadow-xs ring-1 ring-cream-300/70">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-berry font-display text-[15px] font-bold text-white">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-berry text-[14px] font-semibold text-white">
                 {email.charAt(0).toUpperCase()}
               </span>
               <span className="hidden text-[12px] font-medium text-stone-600 md:block">
@@ -346,7 +381,7 @@ export default function AdminShell({
 
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
 
-        <footer className="px-6 pb-6 text-center text-[12px] text-stone-400">
+        <footer className="px-6 pb-6 text-center text-[12px] text-stone-500">
           Bakery Delight Admin · baked with love
         </footer>
       </div>

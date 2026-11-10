@@ -59,7 +59,7 @@ export default async function AboutPage() {
         <section className="px-5 pb-8 sm:px-10 lg:px-[8.5rem]">
           <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
             <div className="relative mx-auto w-full max-w-[440px]">
-              <div className="-rotate-2 bg-white p-3 pb-12 shadow-[0_24px_50px_-12px_rgba(90,30,30,0.28)]">
+              <div className="-rotate-2 bg-white p-3 pb-12 shadow-[0_24px_50px_-12px_rgba(28,9,6,0.18)]">
                 <div className="relative aspect-[680/760] w-full">
                   <Image
                     src="/images/about-main.jpg"
@@ -71,7 +71,7 @@ export default async function AboutPage() {
                   />
                 </div>
               </div>
-              <div className="absolute -bottom-7 -right-2 w-36 rotate-6 bg-white p-2 pb-7 shadow-[0_16px_35px_-10px_rgba(90,30,30,0.3)] sm:-right-6 md:w-44">
+              <div className="absolute -bottom-7 -right-2 w-36 rotate-6 bg-white p-2 pb-7 shadow-[0_16px_35px_-10px_rgba(28,9,6,0.16)] sm:-right-6 md:w-44">
                 <div className="relative aspect-square w-full">
                   <Image
                     src="/images/about-small.jpg"
@@ -82,7 +82,7 @@ export default async function AboutPage() {
                   />
                 </div>
               </div>
-              <div className="absolute -bottom-5 -left-2 -rotate-6 bg-paper px-5 py-3 font-hand text-xl font-semibold leading-tight text-berry-ink shadow-md sm:-left-5 md:text-2xl">
+              <div className="absolute -bottom-5 -left-2 -rotate-6 bg-paper px-5 py-3 font-hand text-[22px] font-semibold leading-tight text-berry-ink shadow-md sm:-left-5 md:text-2xl">
                 Happiness
                 <br />
                 is Homemade{" "}
@@ -91,24 +91,24 @@ export default async function AboutPage() {
             </div>
 
             <div>
-              <h2 className="font-display text-3xl font-bold leading-tight text-ink md:text-4xl">
+              <h2 className="font-display text-[28px] font-bold leading-tight text-ink md:text-[40px]">
                 It began with one cake
                 <br />
                 and a <span className="text-berry">whole lot of love</span>
               </h2>
-              <p className="mt-6 text-[15px] leading-relaxed text-stone-500">
+              <p className="mt-6 text-[15px] leading-relaxed text-stone-600">
                 Bakery Delight started from a simple idea — to spread happiness through
                 homemade cakes. What began as weekend bakes for family and neighbours grew,
                 one celebration at a time, into a small home bakery with a growing community
                 of cake lovers.
               </p>
-              <p className="mt-4 text-[15px] leading-relaxed text-stone-500">
+              <p className="mt-4 text-[15px] leading-relaxed text-stone-600">
                 Every cake is still made the same way the first one was: in my home
                 kitchen, with fresh, high-quality ingredients and a personal touch. No
                 shortcuts, no presets — just careful hands and recipes tested until
                 they&rsquo;re worth sharing.
               </p>
-              <p className="mt-4 text-[15px] leading-relaxed text-stone-500">
+              <p className="mt-4 text-[15px] leading-relaxed text-stone-600">
                 Whether it&rsquo;s a first-birthday smash cake or a Tuesday treat just
                 because, my promise is the same: something beautiful, something delicious,
                 something made for you.
@@ -124,7 +124,7 @@ export default async function AboutPage() {
         <section className="px-5 py-16 sm:px-10 lg:px-[8.5rem]">
           <div className="text-center">
             <p className="eyebrow-hand">What we stand by</p>
-            <h2 className="mt-1 font-display text-3xl font-bold text-ink md:text-4xl">
+            <h2 className="mt-1 font-display text-[28px] font-bold text-ink md:text-[40px]">
               The little things that matter
             </h2>
           </div>
@@ -149,7 +149,7 @@ export default async function AboutPage() {
           <div className="grid gap-5 rounded-2xl bg-blush-200 px-6 py-10 text-center sm:grid-cols-3">
             {stats.map((s) => (
               <div key={s.label}>
-                <p className="font-display text-4xl font-bold text-cocoa-2 md:text-5xl">
+                <p className="font-display text-[40px] font-bold text-cocoa-2 md:text-[56px]">
                   {s.value}
                 </p>
                 <p className="mt-1 text-[13px] font-medium text-stone-600">{s.label}</p>

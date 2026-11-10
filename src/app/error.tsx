@@ -8,8 +8,8 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <main className="flex min-h-[60vh] flex-col items-center justify-center bg-cream-50 px-5 py-24 text-center">
-      <h1 className="font-display text-3xl font-bold text-ink sm:text-4xl">
+    <main className="flex min-h-[60vh] flex-col items-center justify-center bg-cream-50 px-5 py-24 text-center sm:px-10">
+      <h1 className="font-display text-[28px] font-bold text-ink sm:text-[40px]">
         Something crumbled
       </h1>
       <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-stone-600">
@@ -22,7 +22,7 @@ export default function GlobalError({
         Try again
       </button>
       {error.digest && (
-        <p className="mt-6 text-[12px] text-stone-400">Reference: {error.digest}</p>
+        <p className="mt-6 text-[12px] text-stone-500">Reference: {error.digest}</p>
       )}
     </main>
   );

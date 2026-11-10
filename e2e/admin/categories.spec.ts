@@ -37,7 +37,7 @@ test.describe("admin categories manager", () => {
     await drawer.getByRole("button", { name: "Cupcake" }).click();
     await drawer.getByRole("button", { name: "Add category" }).click();
 
-    await expectToast(page, '"E2E Sweets" added.');
+    await expectToast(page, "“E2E Sweets” added.");
     await expect(
       page.getByRole("article").filter({ hasText: "E2E Sweets" }),
     ).toBeVisible();
@@ -124,7 +124,7 @@ test.describe("admin categories manager", () => {
       .getByRole("button", { name: "Delete" })
       .click();
 
-    await expectToast(page, `"${FIX.emptyCategory}" deleted.`);
+    await expectToast(page, `“${FIX.emptyCategory}” deleted.`);
     await expect(page.getByText("2 categories")).toBeVisible();
     expect(
       await (await collection("categories")).countDocuments({ name: FIX.emptyCategory }),

@@ -30,7 +30,7 @@ test.describe("reviews page", () => {
     await submit.click();
     await expect(formAlert(page)).toHaveText("Please pick a star rating.");
 
-    await page.getByRole("radio", { name: "5 stars" }).click();
+    await page.getByRole("button", { name: "5 stars" }).click();
     await page.getByLabel("Your review").fill("too short");
     await submit.click();
     await expect(formAlert(page)).toHaveText(
@@ -61,7 +61,7 @@ test.describe("reviews page", () => {
   }) => {
     await page.goto("/reviews");
     await page.getByLabel("Your name").fill("Test Submitter");
-    await page.getByRole("radio", { name: "4 stars" }).click();
+    await page.getByRole("button", { name: "4 stars" }).click();
     await page
       .getByLabel("Your review")
       .fill("Submitted through the e2e suite, thank you.");

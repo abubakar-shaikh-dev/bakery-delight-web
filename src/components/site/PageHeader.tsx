@@ -37,15 +37,15 @@ export default function PageHeader({
 
       <div className="px-5 pt-10 pb-14 text-center sm:px-10 md:pt-14 lg:px-[8.5rem] lg:pb-20">
         <nav className="mb-5 flex items-center justify-center gap-2 text-[12px] font-medium text-stone-500">
-          <Link href="/" className="transition-colors hover:text-berry">
+          <Link href="/" className="-my-2 inline-flex items-center py-2 transition-colors hover:text-berry-deep">
             Home
           </Link>
-          <IconChevronRight className="h-3 w-3" />
+          <IconChevronRight className="h-4 w-4" />
           <span className="text-berry-deep">{crumb}</span>
         </nav>
 
         <p className="eyebrow-hand mb-3">{eyebrow}</p>
-        <h1 className="font-display text-4xl font-bold leading-[1.1] text-ink sm:text-5xl md:text-[56px]">
+        <h1 className="font-display text-[28px] font-bold leading-[1.1] text-ink sm:text-[40px] md:text-[56px]">
           {title}
           {accent && <span className="text-berry"> {accent}</span>}
         </h1>

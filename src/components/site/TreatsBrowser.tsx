@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, SearchX, X, Croissant } from "lucide-react";
 import TreatCard from "./TreatCard";
 import { TreatCardSkeleton } from "./Skeletons";
+import { IconHeart } from "../icons";
 import { CategoryGlyph } from "@/components/CategoryIcon";
 import type { CategoryData, TreatData } from "@/lib/site-data";
 
@@ -101,10 +102,10 @@ export default function TreatsBrowser({
         key={c || "all"}
         onClick={() => setCategory(c)}
         aria-pressed={active}
-        className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+        className={`inline-flex min-h-10 items-center rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
           active
             ? "bg-berry text-white"
-            : "bg-white text-stone-600 ring-1 ring-cream-300 hover:text-berry hover:ring-berry/40"
+            : "bg-white text-stone-600 ring-1 ring-cream-300 hover:text-berry-deep hover:ring-berry/40"
         }`}
       >
         {label}
@@ -118,7 +119,7 @@ export default function TreatsBrowser({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-sm">
           <Search
-            className="pointer-events-none absolute left-4 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-stone-500"
+            className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-stone-500"
             strokeWidth={1.8}
           />
           <input
@@ -133,9 +134,9 @@ export default function TreatsBrowser({
             <button
               aria-label="Clear search"
               onClick={() => setQ("")}
-              className="absolute right-3.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
+              className="absolute right-1.5 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
             >
-              <X className="h-3.5 w-3.5" strokeWidth={2} />
+              <X className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
         </div>
@@ -152,13 +153,13 @@ export default function TreatsBrowser({
             key={c._id}
             onClick={() => setCategory(category === c.name ? "" : c.name)}
             aria-pressed={category === c.name}
-            className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+            className={`flex min-h-10 items-center gap-1.5 rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
               category === c.name
                 ? "bg-berry text-white"
-                : "bg-white text-stone-600 ring-1 ring-cream-300 hover:text-berry hover:ring-berry/40"
+                : "bg-white text-stone-600 ring-1 ring-cream-300 hover:text-berry-deep hover:ring-berry/40"
             }`}
           >
-            <CategoryGlyph icon={c.icon} className="h-3.5 w-3.5" strokeWidth={1.8} />
+            <CategoryGlyph icon={c.icon} className="h-4 w-4" strokeWidth={1.8} />
             {c.name}
           </button>
         ))}
@@ -189,7 +190,7 @@ export default function TreatsBrowser({
                 .catch(() => setLoadError(true))
                 .finally(() => setSearching(false));
             }}
-            className="mt-5 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+            className="mt-5 rounded-full bg-berry px-6 py-3 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
           >
             Try again
           </button>
@@ -213,7 +214,7 @@ export default function TreatsBrowser({
                 setQ("");
                 setCategory("");
               }}
-              className="mt-5 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+              className="mt-5 rounded-full bg-berry px-6 py-3 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
             >
               Show everything
             </button>
@@ -222,7 +223,7 @@ export default function TreatsBrowser({
       ) : (
         <>
           {loadError && (
-            <p role="alert" className="mt-6 rounded-xl bg-gold-soft px-4 py-3 text-center text-[13px] font-medium text-gold-ink">
+            <p role="alert" className="mt-6 rounded-xl bg-cream-200 px-4 py-3 text-center text-[13px] font-medium text-stone-600 ring-1 ring-cream-300">
               Some treats couldn&rsquo;t load — the list below may be incomplete.
             </p>
           )}
@@ -243,7 +244,8 @@ export default function TreatsBrowser({
           )}
           {reachedEnd && treats.length > PAGE && (
             <p className="mt-12 text-center font-hand text-2xl text-berry-deep">
-              That&rsquo;s every treat on the menu — for now ♡
+              That&rsquo;s every treat on the menu — for now{" "}
+              <IconHeart className="inline-block h-4 w-4 align-[-2px]" strokeWidth={2} />
             </p>
           )}
         </>

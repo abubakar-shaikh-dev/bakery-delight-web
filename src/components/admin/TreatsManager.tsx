@@ -245,7 +245,7 @@ export default function TreatsManager() {
       const res = await fetch(`/api/admin/treats/${deleting._id}`, { method: "DELETE" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error || "Couldn't remove the treat.");
-      showToast(`"${deleting.name}" removed from the menu.`);
+      showToast(`“${deleting.name}” deleted from the menu.`);
       setDeleting(null);
       load(q.trim());
     } catch (err) {
@@ -268,7 +268,8 @@ export default function TreatsManager() {
             value={q}
             onChange={(e) => onSearch(e.target.value)}
             placeholder="Search treats…"
-            className="w-full rounded-full border border-cream-300 bg-white py-2.5 pl-11 pr-10 text-[13px] outline-none transition-[border-color,box-shadow] placeholder:text-stone-400 focus:border-berry/50 focus:ring-4 focus:ring-berry/10"
+            aria-label="Search treats"
+            className="field-input pl-11 pr-10"
           />
           {q && (
             <button
@@ -279,15 +280,15 @@ export default function TreatsManager() {
                 if (timer.current) clearTimeout(timer.current);
                 load("");
               }}
-              className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+              className="absolute right-1.5 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
             >
-              <X className="h-3.5 w-3.5" strokeWidth={2} />
+              <X className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
         </div>
         <button
           onClick={() => openForm({ ...emptyForm })}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+          className="btn-primary"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
           Add treat
@@ -308,19 +309,35 @@ export default function TreatsManager() {
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
             <CakeSlice className="h-7 w-7" strokeWidth={1.8} />
           </span>
-          <h3 className="mt-4 font-display text-xl font-bold text-ink">
+          <h3 className="mt-4 font-display text-2xl font-bold text-ink">
             {q ? "No treats match that search" : "The menu is empty"}
           </h3>
-          <p className="mt-1 max-w-xs text-[13px] text-stone-500">
+          <p className="mt-2 max-w-xs text-[13px] text-stone-500">
             {q ? "Try different words or clear the search." : "Add your first treat to fill the website menu."}
           </p>
+          {q ? (
+            <button
+              onClick={() => {
+                setQ("");
+                load("");
+              }}
+              className="btn-ghost mt-5"
+            >
+              Clear search
+            </button>
+          ) : (
+            <button onClick={() => openForm({ ...emptyForm })} className="btn-primary mt-5">
+              <Plus className="h-4 w-4" strokeWidth={2} />
+              Add treat
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
           {treats.map((t) => (
             <article
               key={t._id}
-              className="flex items-center gap-4 rounded-2xl bg-white p-3.5 shadow-xs ring-1 ring-cream-300 transition-shadow hover:shadow-md"
+              className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-xs ring-1 ring-cream-300 transition-shadow hover:shadow-md"
             >
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-berry-soft sm:h-[72px] sm:w-[72px]">
                 {t.image ? (
@@ -340,18 +357,18 @@ export default function TreatsManager() {
                   </span>
                   {t.featured && (
                     <span className="flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
-                      <Star className="h-3 w-3 fill-gold-ink" />
+                      <Star className="h-4 w-4 fill-gold-ink" />
                       Featured
                     </span>
                   )}
                   {/* Nudges toward the fields that sell a treat. */}
                   {!t.image && (
-                    <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
+                    <span className="rounded-full bg-cream-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
                       No photo
                     </span>
                   )}
                   {t.price === null && !(t.variants && t.variants.length > 0) && (
-                    <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
+                    <span className="rounded-full bg-cream-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
                       No price
                     </span>
                   )}
@@ -399,14 +416,14 @@ export default function TreatsManager() {
                     });
                   }}
                   aria-label={`Edit ${t.name}`}
-                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry hover:text-white hover:ring-berry"
+                  className="icon-btn hover:text-berry-deep hover:ring-berry/40"
                 >
                   <Pencil className="h-4 w-4" strokeWidth={1.8} />
                 </button>
                 <button
                   onClick={() => setDeleting(t)}
                   aria-label={`Delete ${t.name}`}
-                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
+                  className="icon-btn hover:bg-danger-soft hover:text-danger hover:ring-danger/30"
                 >
                   <Trash2 className="h-4 w-4" strokeWidth={1.8} />
                 </button>
@@ -543,7 +560,7 @@ export default function TreatsManager() {
                   className={`flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
                     form.featured
                       ? "border-gold-ink bg-gold-soft text-gold-ink"
-                      : "border-cream-300 bg-white text-stone-400 hover:text-stone-600"
+                      : "border-cream-300 bg-white text-stone-500 hover:text-stone-600"
                   }`}
                 >
                   <Star
@@ -565,9 +582,9 @@ export default function TreatsManager() {
                     onClick={() =>
                       setForm({ ...form, variants: [...form.variants, { label: "", price: "" }] })
                     }
-                    className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-medium text-stone-600 ring-1 ring-cream-300 transition-colors hover:text-berry hover:ring-berry/40"
+                    className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-medium text-stone-600 ring-1 ring-cream-300 transition-colors hover:text-berry-deep hover:ring-berry/40"
                   >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                    <Plus className="h-4 w-4" strokeWidth={2} />
                     Add size
                   </button>
                 )}
@@ -682,7 +699,7 @@ export default function TreatsManager() {
                 <label className={labelCls} htmlFor="treat-description">
                   Description
                 </label>
-                <span className="text-[11px] text-stone-400 tabular-nums">
+                <span className="text-[11px] tabular-nums text-stone-500">
                   {form.description.length}/1200
                 </span>
               </div>
@@ -713,7 +730,7 @@ export default function TreatsManager() {
                 className="btn-primary"
               >
                 {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                {saving ? "Saving…" : form._id ? "Save changes" : "Add to menu"}
+                {saving ? "Saving…" : form._id ? "Save changes" : "Add treat"}
               </button>
             </div>
           </form>
@@ -726,13 +743,14 @@ export default function TreatsManager() {
         onOpenChange={(open) => {
           if (!open) setDeleting(null);
         }}
-        title={deleting ? `Remove “${deleting.name}”?` : ""}
+        title={deleting ? `Delete “${deleting.name}”?` : ""}
         body={
           <>
             It will disappear from the public menu immediately. This can&rsquo;t be
             undone.
           </>
         }
+        confirmLabel="Delete"
         busy={removing}
         onConfirm={remove}
       />

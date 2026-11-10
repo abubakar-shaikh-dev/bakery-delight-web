@@ -3,8 +3,8 @@ import { TreatRowSkeleton } from "@/components/admin/Skeletons";
 export default function LoadingAdminTreats() {
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div className="skeleton h-11 w-full max-w-xs rounded-full" />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="skeleton h-11 w-full max-w-xs rounded-xl" />
         <div className="skeleton h-11 w-32 rounded-full" />
       </div>
       <div className="space-y-3">

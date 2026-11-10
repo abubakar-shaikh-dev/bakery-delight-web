@@ -44,15 +44,20 @@ export default function RecentReviews({
     <ul className="mt-4 divide-y divide-cream-300">
       {reviews.map((r) => (
         <li key={r._id} className="flex items-start gap-3 py-3.5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-berry-soft font-display text-[15px] font-bold text-berry-deep">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-berry-soft text-[15px] font-semibold text-berry-deep">
             {r.name.charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-2 text-[13px] font-semibold text-ink">
               {r.name}
-              <span className="flex items-center gap-px text-gold" aria-label={`${r.rating} stars`}>
-                {Array.from({ length: r.rating }).map((_, i) => (
-                  <Star key={i} className="h-3 w-3 fill-gold" />
+              <span className="flex items-center gap-px" aria-label={`${r.rating} out of 5 stars`}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < r.rating ? "fill-gold text-gold" : "fill-cream-400 text-cream-400"
+                    }`}
+                  />
                 ))}
               </span>
               {r.approved ? (
@@ -60,7 +65,7 @@ export default function RecentReviews({
                   Live
                 </span>
               ) : (
-                <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
+                <span className="rounded-full bg-cream-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
                   Pending
                 </span>
               )}

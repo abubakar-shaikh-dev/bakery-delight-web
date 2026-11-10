@@ -34,7 +34,7 @@ export default async function ReviewsPage() {
           <div className="mx-auto mt-20 max-w-2xl">
             <div className="mb-6 text-center">
               <p className="eyebrow-hand">Your turn</p>
-              <h2 className="mt-1 font-display text-3xl font-bold text-ink md:text-4xl">
+              <h2 className="mt-1 font-display text-[28px] font-bold text-ink md:text-[40px]">
                 Spread a little happiness
               </h2>
             </div>

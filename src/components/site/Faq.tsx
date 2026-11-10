@@ -37,7 +37,7 @@ export default function Faq({ faqs }: { faqs: FaqItem[] }) {
     <section className="px-5 pb-24 sm:px-10 lg:px-[8.5rem]">
       <div className="text-center">
         <p className="eyebrow-hand">Common questions</p>
-        <h2 className="mt-1 font-display text-3xl font-bold text-ink md:text-4xl">
+        <h2 className="mt-1 font-display text-[28px] font-bold text-ink md:text-[40px]">
           Before you ask
         </h2>
       </div>
@@ -48,7 +48,7 @@ export default function Faq({ faqs }: { faqs: FaqItem[] }) {
             className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-cream-300"
           >
             <h3 className="text-[15px] font-semibold text-ink">{f.q}</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-stone-500">
+            <p className="mt-2 text-[13px] leading-relaxed text-stone-600">
               {f.a}
             </p>
           </div>

@@ -25,7 +25,7 @@ export default function TreatDetail({
       {/* info */}
       <div>
         <p className="eyebrow-hand">{treat.category}</p>
-        <h1 className="mt-1 font-display text-4xl font-bold leading-[1.05] text-ink md:text-5xl">
+        <h1 className="mt-1 font-display text-[28px] font-bold leading-[1.05] text-ink md:text-[44px]">
           {treat.name}
         </h1>
         {treat.tagline && (

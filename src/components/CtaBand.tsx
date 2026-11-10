@@ -26,7 +26,7 @@ export default function CtaBand() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-3xl px-5 py-24 text-center lg:py-28">
-        <h2 className="font-display text-4xl font-bold leading-tight text-cream-50 md:text-[40px]">
+        <h2 className="font-display text-[28px] font-bold leading-tight text-cream-50 md:text-[40px]">
           Ready to Add Sweetness to Your Day?
         </h2>
         <p className="mt-4 text-[15px] text-cocoa-muted">
@@ -52,7 +52,7 @@ export default function CtaBand() {
 
       {/* Thank-you tag (right, over photo) */}
       <div className="absolute right-14 bottom-8 hidden rotate-6 md:block lg:right-24">
-        <div className="relative w-44 bg-paper px-4 pt-6 pb-4 text-center font-hand text-lg font-semibold leading-snug text-berry-ink shadow-xl">
+        <div className="relative w-44 bg-paper px-4 pt-6 pb-4 text-center font-hand text-lg font-semibold leading-snug text-berry-ink shadow-md">
           <span className="absolute top-2.5 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-cocoa/20 ring-1 ring-berry-ink/30"></span>
           Thank You
           <br />
@@ -60,7 +60,8 @@ export default function CtaBand() {
           <br />
           a small home
           <br />
-          bakery &hearts;
+          bakery{" "}
+          <IconHeart className="inline-block h-4 w-4 align-[-2px]" strokeWidth={2} />
         </div>
       </div>
     </section>

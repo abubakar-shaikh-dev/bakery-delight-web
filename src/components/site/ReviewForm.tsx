@@ -82,7 +82,7 @@ export default function ReviewForm() {
       </p>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep">
+        <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-danger">
           {error}
         </p>
       )}
@@ -106,7 +106,7 @@ export default function ReviewForm() {
             Your rating
           </span>
           <div
-            role="radiogroup"
+            role="group"
             aria-labelledby="rv-rating-label"
             className="flex h-[46px] items-center gap-1.5"
           >
@@ -114,13 +114,12 @@ export default function ReviewForm() {
               <button
                 key={i}
                 type="button"
-                role="radio"
-                aria-checked={i === rating}
+                aria-pressed={i === rating}
                 aria-label={`${i} star${i > 1 ? "s" : ""}`}
                 onMouseEnter={() => setHover(i)}
                 onMouseLeave={() => setHover(0)}
                 onClick={() => setRating(i)}
-                className="grid h-9 w-9 place-items-center rounded-full transition-colors"
+                className="grid h-10 w-10 place-items-center rounded-full transition-colors"
               >
                 <Star
                   className={`h-7 w-7 transition-colors ${
@@ -148,13 +147,13 @@ export default function ReviewForm() {
           maxLength={600}
           className={`${inputCls} resize-none`}
         />
-        <p className="mt-1 text-right text-[11px] text-stone-400">{text.length}/600</p>
+        <p className="mt-1 text-right text-[11px] tabular-nums text-stone-500">{text.length}/600</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="rv-platform" className="field-label">
-            Social platform <span className="font-normal text-stone-400">(optional)</span>
+            Social platform <span className="font-normal text-stone-500">(optional)</span>
           </label>
           <select
             id="rv-platform"

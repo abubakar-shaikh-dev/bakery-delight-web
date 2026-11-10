@@ -7,6 +7,7 @@ import {
   LoaderCircle,
   Pencil,
   Plus,
+  Tags,
   Trash2,
 } from "lucide-react";
 import { CATEGORY_ICONS, CategoryGlyph } from "../CategoryIcon";
@@ -106,7 +107,7 @@ export default function CategoriesManager() {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed.");
-      showToast(form._id ? "Category updated." : `"${data.category.name}" added.`);
+      showToast(form._id ? "Category updated." : `“${data.category.name}” added.`);
       closeForm();
       load();
     } catch (err) {
@@ -151,7 +152,7 @@ export default function CategoriesManager() {
       const res = await fetch(`/api/admin/categories/${deleting._id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Delete failed.");
-      showToast(`"${deleting.name}" deleted.`);
+      showToast(`“${deleting.name}” deleted.`);
       setDeleting(null);
       load();
     } catch (err) {
@@ -172,7 +173,7 @@ export default function CategoriesManager() {
           aria-label={i.label}
           aria-pressed={value === i.key}
           onClick={() => onChange(i.key)}
-          className={`grid h-9 w-9 place-items-center rounded-lg border transition-colors ${
+          className={`grid h-10 w-10 place-items-center rounded-xl border transition-colors ${
             value === i.key
               ? "border-berry/40 bg-berry-soft text-berry-deep"
               : "border-cream-300 bg-white text-stone-400 hover:border-berry/40 hover:text-stone-600"
@@ -193,7 +194,7 @@ export default function CategoriesManager() {
         </p>
         <button
           onClick={() => openForm({ ...emptyForm })}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+          className="btn-primary"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
           Add category
@@ -204,65 +205,72 @@ export default function CategoriesManager() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton h-16 rounded-2xl" />
+            <div key={i} className="skeleton h-[76px] rounded-2xl" />
           ))}
         </div>
       ) : loadError ? (
         <LoadError label="The categories couldn't be loaded." onRetry={load} />
       ) : categories.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl bg-white py-16 text-center ring-1 ring-cream-300">
-          <h3 className="font-display text-xl font-bold text-ink">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
+            <Tags className="h-7 w-7" strokeWidth={1.8} />
+          </span>
+          <h3 className="mt-4 font-display text-2xl font-bold text-ink">
             No categories yet
           </h3>
-          <p className="mt-1 max-w-xs text-[13px] text-stone-600">
+          <p className="mt-2 max-w-xs text-[13px] text-stone-500">
             Add your first one — it appears instantly as a filter on the treats page.
           </p>
+          <button onClick={() => openForm({ ...emptyForm })} className="btn-primary mt-5">
+            <Plus className="h-4 w-4" strokeWidth={2} />
+            Add category
+          </button>
         </div>
       ) : (
         <div className="space-y-3">
           {categories.map((c, idx) => (
             <article
               key={c._id}
-              className="rounded-2xl bg-white p-4 shadow-xs ring-1 ring-cream-300"
+              className="rounded-2xl bg-white p-4 shadow-xs ring-1 ring-cream-300 transition-shadow hover:shadow-md"
             >
               <div className="flex items-center gap-2 sm:gap-3.5">
-                <div className="flex shrink-0 flex-col">
+                <div className="flex shrink-0 gap-1">
                   <button
                     onClick={() => move(c, -1)}
                     disabled={idx === 0 || busyId === c._id}
                     aria-label={`Move ${c.name} up`}
-                    className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
+                    className="grid h-10 w-10 place-items-center rounded-xl text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 disabled:opacity-30"
                   >
-                    <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} />
+                    <ArrowUp className="h-4 w-4" strokeWidth={2} />
                   </button>
                   <button
                     onClick={() => move(c, 1)}
                     disabled={idx === categories.length - 1 || busyId === c._id}
                     aria-label={`Move ${c.name} down`}
-                    className="grid h-7 w-8 place-items-center rounded text-stone-300 transition-colors hover:text-berry disabled:opacity-30"
+                    className="grid h-10 w-10 place-items-center rounded-xl text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 disabled:opacity-30"
                   >
-                    <ArrowDown className="h-3.5 w-3.5" strokeWidth={2} />
+                    <ArrowDown className="h-4 w-4" strokeWidth={2} />
                   </button>
                 </div>
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-berry-soft text-berry-deep">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-berry-soft text-berry-deep">
                   <CategoryGlyph icon={c.icon} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-semibold text-ink">{c.name}</p>
-                  <p className="text-[12px] text-stone-400">/{c.slug}</p>
+                  <p className="text-[12px] text-stone-500">/{c.slug}</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <button
                     onClick={() => openForm({ _id: c._id, name: c.name, icon: c.icon })}
                     aria-label={`Edit ${c.name}`}
-                    className="icon-btn hover:text-berry hover:ring-berry/40"
+                    className="icon-btn hover:text-berry-deep hover:ring-berry/40"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.8} />
                   </button>
                   <button
                     onClick={() => setDeleting(c)}
                     aria-label={`Delete ${c.name}`}
-                    className="icon-btn hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
+                    className="icon-btn hover:bg-danger-soft hover:text-danger hover:ring-danger/30"
                   >
                     <Trash2 className="h-4 w-4" strokeWidth={1.8} />
                   </button>

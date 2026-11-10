@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Images, SearchX, X } from "lucide-react";
+import { IconHeart } from "../icons";
 import { GalleryCardSkeleton } from "./Skeletons";
 import type { GalleryData } from "@/lib/site-data";
 
@@ -132,7 +133,7 @@ export default function GalleryBrowser({
             setLoadError(false);
             loadMore();
           }}
-          className="mt-5 rounded-full bg-berry px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+          className="mt-5 rounded-full bg-berry px-6 py-3 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
         >
           Try again
         </button>
@@ -185,7 +186,7 @@ export default function GalleryBrowser({
               />
             )}
             {g.caption && (
-              <span className="absolute inset-x-0 bottom-0 translate-y-full bg-linear-to-t from-black/60 to-transparent px-4 pb-3.5 pt-10 text-left text-[12px] font-medium text-white transition-transform duration-200 group-hover:translate-y-0 group-focus-within:translate-y-0 max-sm:translate-y-0">
+              <span className="absolute inset-x-0 bottom-0 translate-y-full bg-linear-to-t from-cocoa-3/70 to-transparent px-4 pb-3.5 pt-10 text-left text-[12px] font-medium text-white transition-[opacity,transform] duration-200 group-hover:translate-y-0 group-focus-within:translate-y-0 max-sm:translate-y-0">
                 {g.caption}
               </span>
             )}
@@ -212,7 +213,8 @@ export default function GalleryBrowser({
 
       {reachedEnd && images.length > PAGE && (
         <p className="mt-12 text-center font-hand text-2xl text-berry-deep">
-          That&rsquo;s the whole album — for now &hearts;
+          That&rsquo;s the whole album — for now{" "}
+          <IconHeart className="inline-block h-4 w-4 align-[-2px]" strokeWidth={2} />
         </p>
       )}
 
@@ -223,7 +225,7 @@ export default function GalleryBrowser({
           aria-modal="true"
           aria-label="Photo viewer"
           onClick={() => setViewing(null)}
-          className="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-cocoa-3/90 p-4 pt-16 backdrop-blur-sm sm:p-10 sm:pt-14"
+          className="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-cocoa-3/95 p-4 pt-16 sm:p-10 sm:pt-14"
         >
           <div
             ref={contentRef}
@@ -250,7 +252,7 @@ export default function GalleryBrowser({
                   {current.caption}
                 </figcaption>
               )}
-              <p className="mt-1 text-[12px] text-white/50 tabular-nums">
+              <p className="mt-1 text-[12px] text-cocoa-muted tabular-nums">
                 {(viewing ?? 0) + 1} / {images.length}
               </p>
             </figure>

@@ -178,7 +178,7 @@ body {
   }
 
   .field-error {
-    @apply mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep;
+    @apply mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-danger;
   }
 
   /* Selects share .field-input but keep a visible chevron — appearance-none
@@ -212,7 +212,7 @@ body {
   }
 
   .icon-btn {
-    @apply grid h-9 w-9 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors;
+    @apply grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors;
   }
 
   .admin-card {
@@ -233,7 +233,7 @@ body {
     --nav-wipe: calc(100% - 2.6rem) 2.9rem;
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 60;
     background: var(--color-cream-100);
     clip-path: circle(0px at var(--nav-wipe));
     visibility: hidden;

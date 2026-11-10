@@ -24,6 +24,19 @@ export default function LoadingContact() {
           <div className="skeleton h-[560px] rounded-2xl" />
         </div>
       </section>
+
+      {/* FAQ */}
+      <section className="bg-cream-50 px-5 pb-24 sm:px-10 lg:px-[8.5rem]">
+        <div className="text-center">
+          <div className="skeleton mx-auto h-5 w-40" />
+          <div className="skeleton mx-auto mt-2 h-9 w-56" />
+        </div>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="skeleton h-28 rounded-2xl" />
+          ))}
+        </div>
+      </section>
     </>
   );
 }

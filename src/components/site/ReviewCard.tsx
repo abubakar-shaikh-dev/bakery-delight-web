@@ -5,7 +5,7 @@ import StarRating from "./StarRating";
 
 export function SocialIcon({ platform, url }: { platform: string | null; url: string | null }) {
   if (!platform || !url) return null;
-  const cls = "h-3.5 w-3.5";
+  const cls = "h-4 w-4";
   const icon =
     platform === "Instagram" ? (
       <IconInstagram className={cls} />
@@ -24,7 +24,7 @@ export function SocialIcon({ platform, url }: { platform: string | null; url: st
       rel="noopener noreferrer"
       aria-label={`${platform} review`}
       title={`View on ${platform}`}
-      className="inline-flex items-center gap-1 rounded-full bg-berry-soft px-2.5 py-1 text-[11px] font-medium text-berry-deep transition-colors hover:bg-berry/15"
+      className="inline-flex items-center gap-1 rounded-full bg-berry-soft px-2.5 py-1 text-[11px] font-semibold text-berry-deep transition-colors hover:bg-berry/15 max-sm:min-h-10"
     >
       {icon}
       {platform}
@@ -71,14 +71,14 @@ export default function ReviewCard({
             className="h-11 w-11 rounded-full object-cover ring-2 ring-berry-soft"
           />
         ) : (
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-berry-soft font-display text-lg font-bold text-berry-deep ring-2 ring-white">
+          <span className="grid h-11 w-11 place-items-center rounded-full bg-berry-soft text-[15px] font-semibold text-berry-deep ring-2 ring-white">
             {initial || <User className="h-5 w-5" strokeWidth={1.8} />}
           </span>
         )}
         <div className="min-w-0 flex-1">
           <p className="text-[14px] font-semibold text-ink">{review.name}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <StarRating rating={review.rating} className="h-3.5 w-3.5" />
+            <StarRating rating={review.rating} className="h-4 w-4" />
             <SocialIcon platform={review.socialPlatform} url={review.socialUrl} />
           </div>
         </div>

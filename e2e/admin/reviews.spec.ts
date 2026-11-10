@@ -49,9 +49,9 @@ test.describe("admin reviews manager", () => {
   test("create validates inline, then saves", async ({ page }) => {
     await page.goto("/admin/reviews");
     await page.getByRole("button", { name: "Add review" }).click();
-    const drawer = page.getByRole("dialog").filter({ hasText: "Add review" });
+    const drawer = page.getByRole("dialog").filter({ hasText: "New review" });
 
-    await drawer.getByRole("button", { name: "Save review" }).click();
+    await drawer.getByRole("button", { name: "Add review" }).click();
     await expect(
       drawer.getByText("Who wrote this? A name is needed."),
     ).toBeVisible();
@@ -59,10 +59,10 @@ test.describe("admin reviews manager", () => {
 
     await drawer.locator("#review-name").fill("E2E Reviewer");
     await drawer
-      .getByRole("radio", { name: "5 stars" })
+      .getByRole("button", { name: "5 stars" })
       .click();
     await drawer.locator("#review-text").fill("short");
-    await drawer.getByRole("button", { name: "Save review" }).click();
+    await drawer.getByRole("button", { name: "Add review" }).click();
     await expect(
       drawer.getByText("The review should be at least 10 characters."),
     ).toBeVisible();
@@ -74,7 +74,7 @@ test.describe("admin reviews manager", () => {
     await expect(
       drawer.getByRole("button", { name: "Approved — live" }),
     ).toHaveAttribute("aria-pressed", "true");
-    await drawer.getByRole("button", { name: "Save review" }).click();
+    await drawer.getByRole("button", { name: "Add review" }).click();
 
     await expectToast(page, "Review added.");
     const doc = await (await collection("reviews")).findOne({ name: "E2E Reviewer" });
@@ -92,11 +92,11 @@ test.describe("admin reviews manager", () => {
 
     const drawer = page.getByRole("dialog").filter({ hasText: "Edit review" });
     await expect(drawer.locator("#review-name")).toHaveValue("Rohit Menon");
-    await drawer.getByRole("radio", { name: "3 stars" }).click();
+    await drawer.getByRole("button", { name: "3 stars" }).click();
     await drawer
       .locator("#review-text")
       .fill("Edited by the e2e suite — still a nice review.");
-    await drawer.getByRole("button", { name: "Save review" }).click();
+    await drawer.getByRole("button", { name: "Save changes" }).click();
 
     await expectToast(page, "Review updated.");
     const doc = await (await collection("reviews")).findOne({ name: "Rohit Menon" });
@@ -120,7 +120,7 @@ test.describe("admin reviews manager", () => {
       "aria-pressed",
       "false",
     );
-    await drawer.getByRole("button", { name: "Save review" }).click();
+    await drawer.getByRole("button", { name: "Save changes" }).click();
     await expectToast(page, "Review updated.");
 
     const doc = await (await collection("reviews")).findOne({ name: "Rohit Menon" });
@@ -143,7 +143,7 @@ test.describe("admin reviews manager", () => {
     const drawer = page.getByRole("dialog").filter({ hasText: "Edit review" });
 
     await drawer.locator("#review-treat").selectOption({ label: "Kulfi Dream" });
-    await drawer.getByRole("button", { name: "Save review" }).click();
+    await drawer.getByRole("button", { name: "Save changes" }).click();
     await expectToast(page, "Review updated.");
 
     const doc = await (await collection("reviews")).findOne({ name: "Rohit Menon" });

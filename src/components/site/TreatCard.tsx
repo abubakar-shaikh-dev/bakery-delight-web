@@ -43,10 +43,10 @@ export default function TreatCard({
           />
         ) : (
           <div className="grid h-full place-items-center bg-berry-soft text-berry-deep">
-            <span className="font-display text-5xl">{treat.name.charAt(0)}</span>
+            <span className="font-display text-[44px]">{treat.name.charAt(0)}</span>
           </div>
         )}
-        <span className="absolute top-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-berry-deep backdrop-blur-sm">
+        <span className="absolute top-3 left-3 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-berry-deep shadow-xs">
           {treat.category}
         </span>
       </Link>
@@ -79,21 +79,27 @@ export default function TreatCard({
         )}
 
         <div className="mt-auto flex items-center justify-between pt-4">
-          <a
-            href={whatsappDigits ? waOrderLink(whatsappDigits, treat.name) : undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-disabled={!whatsappDigits}
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-wa"
-          >
-            <IconWhatsApp className="h-4 w-4" />
-            Order on WhatsApp
-          </a>
+          {whatsappDigits ? (
+            <a
+              href={waOrderLink(whatsappDigits, treat.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-10 items-center gap-1.5 text-[13px] font-semibold text-wa"
+            >
+              <IconWhatsApp className="h-4 w-4" />
+              Order on WhatsApp
+            </a>
+          ) : (
+            <span className="inline-flex min-h-10 items-center gap-1.5 text-[13px] font-semibold text-stone-500">
+              <IconWhatsApp className="h-4 w-4" />
+              Ask us on WhatsApp
+            </span>
+          )}
           <span
             aria-hidden="true"
-            className="grid h-8 w-8 place-items-center rounded-full border border-berry/30 text-berry transition-colors group-hover:bg-berry group-hover:text-white"
+            className="grid h-8 w-8 place-items-center rounded-full border border-berry/30 text-berry-deep transition-colors group-hover:border-berry group-hover:bg-berry group-hover:text-white"
           >
-            <IconArrowRight className="h-3.5 w-3.5" />
+            <IconArrowRight className="h-4 w-4" />
           </span>
         </div>
       </div>

@@ -115,7 +115,7 @@ export default function GalleryManager() {
     try {
       const res = await fetch(`/api/admin/gallery/${deleting._id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Couldn't remove the photo.");
-      showToast("Photo removed.");
+      showToast("Photo deleted.");
       setDeleting(null);
       load();
     } catch (err) {
@@ -157,7 +157,7 @@ export default function GalleryManager() {
         </p>
         <button
           onClick={() => setForm({ ...emptyForm })}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+          className="btn-primary"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
           Add photo
@@ -178,12 +178,16 @@ export default function GalleryManager() {
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
             <ImagePlus className="h-7 w-7" strokeWidth={1.8} />
           </span>
-          <h3 className="mt-4 font-display text-xl font-bold text-ink">
+          <h3 className="mt-4 font-display text-2xl font-bold text-ink">
             The gallery is empty
           </h3>
-          <p className="mt-1 max-w-xs text-[13px] text-stone-500">
+          <p className="mt-2 max-w-xs text-[13px] text-stone-500">
             Add your first photo — the newest 5 appear on the homepage.
           </p>
+          <button onClick={() => setForm({ ...emptyForm })} className="btn-primary mt-5">
+            <Plus className="h-4 w-4" strokeWidth={2} />
+            Add photo
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -198,7 +202,7 @@ export default function GalleryManager() {
                     src={g.url}
                     alt={g.caption || "Gallery photo"}
                     fill
-                    sizes="(min-width:1024px) 25vw, 46vw"
+                    sizes="(min-width:1024px) 25vw, (min-width:640px) 30vw, 46vw"
                     className="object-cover"
                   />
                 )}
@@ -206,7 +210,7 @@ export default function GalleryManager() {
                 <button
                   onClick={() => setDeleting(g)}
                   aria-label="Delete photo"
-                  className="absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-stone-500 shadow-sm opacity-100 transition-opacity hover:text-berry-deep sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                  className="absolute right-2.5 top-2.5 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-stone-500 shadow-sm opacity-100 transition-[opacity,transform] hover:text-berry-deep sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
                 >
                   <Trash2 className="h-4 w-4" strokeWidth={1.8} />
                 </button>
@@ -224,13 +228,13 @@ export default function GalleryManager() {
                         }
                       }}
                       aria-label="Edit caption"
-                      className="w-full rounded-lg border border-berry/40 px-2.5 py-1.5 text-[13px] outline-none"
+                      className="w-full rounded-xl border border-berry/40 px-2.5 py-1.5 text-[13px] outline-none"
                       autoFocus
                     />
                     <button
                       onClick={() => commitEdit(g)}
                       aria-label="Save caption"
-                      className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-berry text-white"
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-berry text-white transition-colors hover:bg-berry-deep"
                     >
                       <Check className="h-4 w-4" strokeWidth={2} />
                     </button>
@@ -238,14 +242,14 @@ export default function GalleryManager() {
                 ) : (
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-[12px] text-stone-500">
-                      {g.caption || <span className="text-stone-300">No caption</span>}
+                      {g.caption || <span className="text-stone-400">No caption</span>}
                     </p>
                     <button
                       onClick={() => startEdit(g)}
                       aria-label="Edit caption"
-                      className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cream-100 text-stone-400 transition-colors hover:bg-berry-soft hover:text-berry"
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream-100 text-stone-400 transition-colors hover:bg-berry-soft hover:text-berry-deep"
                     >
-                      <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
+                      <Pencil className="h-4 w-4" strokeWidth={1.8} />
                     </button>
                   </div>
                 )}
@@ -299,7 +303,7 @@ export default function GalleryManager() {
 
             <div>
               <label className="field-label" htmlFor="gallery-caption">
-                Caption <span className="font-normal text-stone-400">(optional)</span>
+                Caption <span className="font-normal text-stone-500">(optional)</span>
               </label>
               <input
                 id="gallery-caption"
@@ -317,7 +321,7 @@ export default function GalleryManager() {
               </button>
               <button type="submit" disabled={saving} className="btn-primary">
                 {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                {saving ? "Adding…" : "Add to gallery"}
+                {saving ? "Adding…" : "Add photo"}
               </button>
             </div>
           </form>
@@ -330,8 +334,9 @@ export default function GalleryManager() {
         onOpenChange={(open) => {
           if (!open) setDeleting(null);
         }}
-        title="Remove this photo?"
+        title="Delete this photo?"
         body="It will also be deleted from storage."
+        confirmLabel="Delete"
         busy={removing}
         onConfirm={remove}
       />

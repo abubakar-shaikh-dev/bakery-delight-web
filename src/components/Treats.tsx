@@ -9,14 +9,14 @@ export default function Treats({
   treats: TreatData[];
 }) {
   return (
-    <section id="treats" className="px-5 pt-10 pb-24 md:px-10 lg:px-[8.5rem]">
+    <section id="treats" className="px-5 pt-10 pb-24 sm:px-10 lg:px-[8.5rem]">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-4xl font-bold leading-none text-ink md:text-[40px]">
+          <h2 className="font-display text-[28px] font-bold leading-none text-ink md:text-[40px]">
             Our Treats
             <span className="ml-5 -mt-2 inline-block h-px w-20 bg-cream-400 align-middle md:w-24"></span>
           </h2>
-          <p className="mt-4 text-[15px] text-stone-500">
+          <p className="mt-4 text-[15px] text-stone-600">
             From classic flavours to custom creations, there&rsquo;s something for every occasion.
           </p>
         </div>
@@ -25,7 +25,7 @@ export default function Treats({
           className="group flex items-center gap-2 text-[15px] font-medium text-berry-deep"
         >
           View All
-          <IconArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
+          <IconArrowRight className="transition-[opacity,transform] duration-200 group-hover:translate-x-1" />
         </Link>
       </div>
 
@@ -60,7 +60,7 @@ export default function Treats({
                     priority={i < 2}
                   />
                 ) : (
-                  <div className="grid h-full place-items-center bg-berry-soft font-display text-4xl font-bold text-berry-deep">
+                  <div className="grid h-full place-items-center bg-berry-soft font-display text-[40px] font-bold text-berry-deep">
                     {t.name.charAt(0)}
                   </div>
                 )}
@@ -72,9 +72,9 @@ export default function Treats({
                 </div>
                 <span
                   aria-hidden="true"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-berry/35 text-berry transition-colors group-hover:border-berry group-hover:bg-berry group-hover:text-white"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-berry/35 text-berry-deep transition-colors group-hover:border-berry group-hover:bg-berry group-hover:text-white"
                 >
-                  <IconArrowRight className="h-3.5 w-3.5" />
+                  <IconArrowRight className="h-4 w-4" />
                 </span>
               </div>
             </Link>

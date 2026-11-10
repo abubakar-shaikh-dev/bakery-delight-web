@@ -9,7 +9,6 @@ import {
   Phone,
   Trash2,
 } from "lucide-react";
-import { IconMail } from "../icons";
 import { ConfirmDrawer } from "./Drawer";
 import LoadError from "./LoadError";
 import { MessageRowSkeleton } from "./Skeletons";
@@ -95,7 +94,7 @@ export default function MessagesManager() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[13px] text-stone-600">
+        <p className="text-[13px] tabular-nums text-stone-600">
           {messages.length} message{messages.length === 1 ? "" : "s"}
           {filter === "unread" ? " · unread only" : ""}
           {unreadCount > 0 && (
@@ -104,14 +103,14 @@ export default function MessagesManager() {
             </span>
           )}
         </p>
-        <div className="flex gap-1.5 self-start rounded-full bg-white p-1 shadow-xs ring-1 ring-cream-300">
+        <div className="flex gap-1.5 self-start rounded-xl bg-white p-1 shadow-xs ring-1 ring-cream-300">
           {(["all", "unread"] as const).map((k) => (
             <button
               key={k}
               onClick={() => setFilter(k)}
               aria-pressed={filter === k}
-              className={`rounded-full px-4 py-1.5 text-[13px] font-medium capitalize transition-colors ${
-                filter === k ? "bg-berry text-white" : "text-stone-500 hover:text-berry"
+              className={`rounded-lg px-4 py-1.5 text-[13px] font-medium capitalize transition-colors ${
+                filter === k ? "bg-berry text-white" : "text-stone-500 hover:text-berry-deep"
               }`}
             >
               {k}
@@ -133,10 +132,10 @@ export default function MessagesManager() {
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
             <MailOpen className="h-7 w-7" strokeWidth={1.8} />
           </span>
-          <h3 className="mt-4 font-display text-xl font-bold text-ink">
+          <h3 className="mt-4 font-display text-2xl font-bold text-ink">
             {filter === "unread" ? "Inbox empty" : "No messages yet"}
           </h3>
-          <p className="mt-1 max-w-xs text-[13px] text-stone-600">
+          <p className="mt-2 max-w-xs text-[13px] text-stone-500">
             {filter === "unread"
               ? "Every message has been read."
               : "Messages from the contact form will land here."}
@@ -163,7 +162,7 @@ export default function MessagesManager() {
                   className="flex w-full items-start gap-4 p-5 text-left"
                 >
                   <span
-                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-full font-display text-[16px] font-bold ${
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-[15px] font-semibold ${
                       m.read ? "bg-cream-200 text-stone-500" : "bg-berry-soft text-berry-deep"
                     }`}
                   >
@@ -187,10 +186,11 @@ export default function MessagesManager() {
                       {new Date(m.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
+                        year: "numeric",
                       })}
                     </span>
                     <ChevronDown
-                      className={`h-4 w-4 text-stone-400 transition-transform ${open ? "rotate-180" : ""}`}
+                      className={`h-4 w-4 text-stone-400 transition-[opacity,transform] ${open ? "rotate-180" : ""}`}
                       strokeWidth={2}
                     />
                   </span>
@@ -204,9 +204,9 @@ export default function MessagesManager() {
                     <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-stone-500">
                       <a
                         href={`mailto:${m.email}`}
-                        className="flex items-center gap-1.5 transition-colors hover:text-berry"
+                        className="flex items-center gap-1.5 transition-colors hover:text-berry-deep"
                       >
-                        <IconMail className="h-4 w-4" /> {m.email}
+                        <Mail className="h-4 w-4" strokeWidth={1.8} /> {m.email}
                       </a>
                       {m.phone && (
                         <span className="flex items-center gap-1.5">
@@ -229,36 +229,36 @@ export default function MessagesManager() {
                           href={`https://wa.me/${m.phone.replace(/[^0-9]/g, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-4 py-2 text-[13px] font-medium text-success transition-colors hover:bg-success hover:text-white"
+                          className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-wa-soft px-4 py-2 text-[13px] font-medium text-wa transition-colors hover:bg-wa hover:text-white"
                         >
                           Reply on WhatsApp
                         </a>
                       )}
                       <a
                         href={`mailto:${m.email}?subject=Re: your Bakery Delight message`}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-berry-soft px-4 py-2 text-[13px] font-medium text-berry-deep transition-colors hover:bg-berry hover:text-white"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-berry-soft px-4 py-2 text-[13px] font-medium text-berry-deep transition-colors hover:bg-berry hover:text-white"
                       >
                         Reply by email
                       </a>
                       <button
                         onClick={() => setRead(m, !m.read)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry hover:ring-berry/40"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry-deep hover:ring-berry/40"
                       >
                         {m.read ? (
                           <>
-                            <Mail className="h-3.5 w-3.5" strokeWidth={1.8} /> Mark unread
+                            <Mail className="h-4 w-4" strokeWidth={1.8} /> Mark unread
                           </>
                         ) : (
                           <>
-                            <MailOpen className="h-3.5 w-3.5" strokeWidth={1.8} /> Mark read
+                            <MailOpen className="h-4 w-4" strokeWidth={1.8} /> Mark read
                           </>
                         )}
                       </button>
                       <button
                         onClick={() => setDeleting(m)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry-deep hover:ring-berry-deep/40"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-danger hover:ring-danger/30"
                       >
-                        <Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} /> Delete
+                        <Trash2 className="h-4 w-4" strokeWidth={1.8} /> Delete
                       </button>
                     </div>
                   </div>

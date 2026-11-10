@@ -69,7 +69,7 @@ test.describe("site navigation & shell", () => {
     await page.goto("/about");
     const footer = page.getByRole("contentinfo");
     await expect(
-      footer.getByRole("link", { name: "Our Treats", exact: true }),
+      footer.getByRole("link", { name: "Treats", exact: true }),
     ).toBeVisible();
     await expect(footer.getByText("hello@bakerydelight.test")).toBeVisible();
     await expect(footer.getByText("+91 98765 43210")).toBeVisible();

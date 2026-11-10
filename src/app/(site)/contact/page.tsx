@@ -34,7 +34,7 @@ export default async function ContactPage() {
     { label: "WhatsApp", href: settings.socials.whatsapp, icon: <IconWhatsApp /> },
     { label: "Pinterest", href: settings.socials.pinterest, icon: <IconPinterest /> },
     { label: "Facebook", href: settings.socials.facebook, icon: <IconFacebook /> },
-    { label: "YouTube", href: settings.socials.youtube, icon: <IconYoutube className="h-[19px] w-[19px]" /> },
+    { label: "YouTube", href: settings.socials.youtube, icon: <IconYoutube /> },
   ].filter((s) => s.href);
   const faqs = contactFaqs(settings);
 
@@ -129,8 +129,8 @@ export default async function ContactPage() {
               </div>
 
               {socials.length > 0 && (
-                <div className="rounded-2xl bg-blush-200 p-5">
-                  <p className="text-[13px] font-semibold text-cocoa-2">
+                <div className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-cream-300">
+                  <p className="text-[13px] font-semibold text-ink">
                     Follow along
                   </p>
                   <div className="mt-3 flex items-center gap-3">

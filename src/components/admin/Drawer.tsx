@@ -29,8 +29,8 @@ export function AdminDrawer({
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} dismissible={dismissible}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-[81] mx-auto flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none sm:mb-6 sm:max-w-xl sm:rounded-2xl">
+        <Drawer.Overlay className="fixed inset-0 z-[80] bg-cocoa-3/60" />
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-[81] mx-auto flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-lg outline-none sm:mb-6 sm:max-w-xl sm:rounded-2xl">
           {dismissible && (
             <div
               aria-hidden="true"
@@ -45,7 +45,7 @@ export function AdminDrawer({
               type="button"
               onClick={requestClose}
               aria-label="Close"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
             >
               <X className="h-5 w-5" strokeWidth={2} />
             </button>
@@ -71,7 +71,7 @@ export function ConfirmDrawer({
   onOpenChange,
   title,
   body,
-  confirmLabel = "Remove",
+  confirmLabel = "Delete",
   busy = false,
   onConfirm,
   tone = "danger",
@@ -99,8 +99,8 @@ export function ConfirmDrawer({
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} dismissible={!busy}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-[81] mx-auto w-full max-w-sm rounded-t-2xl bg-white shadow-2xl outline-none sm:mb-10 sm:rounded-2xl">
+        <Drawer.Overlay className="fixed inset-0 z-[80] bg-cocoa-3/60" />
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-[81] mx-auto w-full max-w-sm rounded-t-2xl bg-white shadow-lg outline-none sm:mb-10 sm:rounded-2xl">
           <div
             aria-hidden="true"
             className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-cream-300 sm:hidden"
@@ -117,7 +117,7 @@ export function ConfirmDrawer({
                 <Trash2 className="h-5 w-5" strokeWidth={1.8} />
               )}
             </span>
-            <Drawer.Title className="mt-3.5 block font-display text-xl font-bold text-ink">
+            <Drawer.Title className="mt-3.5 block font-display text-2xl font-bold text-ink">
               {title}
             </Drawer.Title>
             <Drawer.Description className="mx-auto mt-1.5 block max-w-xs text-[13px] leading-relaxed text-stone-500">

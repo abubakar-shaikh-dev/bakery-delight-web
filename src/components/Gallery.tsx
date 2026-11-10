@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { IconInstagram } from "./icons";
+import { IconArrowRight, IconHeart, IconInstagram } from "./icons";
 import type { GalleryData } from "@/lib/site-data";
 
 export default function Gallery({
@@ -10,9 +10,9 @@ export default function Gallery({
   instagramUrl: string;
 }) {
   return (
-    <section className="px-5 pb-24 md:px-10 lg:px-[8.5rem]">
+    <section className="px-5 pb-24 sm:px-10 lg:px-[8.5rem]">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h2 className="font-display text-4xl font-bold leading-none text-ink md:text-[40px]">
+        <h2 className="font-display text-[28px] font-bold leading-none text-ink md:text-[40px]">
           A Glimpse of Our Sweet World
           <span className="ml-5 -mt-2 inline-block h-px w-20 bg-cream-400 align-middle md:w-24"></span>
         </h2>
@@ -21,10 +21,11 @@ export default function Gallery({
             href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2.5 text-[15px] font-medium text-berry-deep"
+            className="group flex items-center gap-2.5 text-[15px] font-medium text-berry-deep"
           >
             <IconInstagram className="h-[18px] w-[18px]" />
             Follow us on Instagram
+            <IconArrowRight className="transition-[opacity,transform] duration-200 group-hover:translate-x-1" />
           </a>
         )}
       </div>
@@ -65,11 +66,12 @@ export default function Gallery({
                     <br />
                     Happier
                     <br />
-                    People &hearts;
+                    People{" "}
+                    <IconHeart className="inline-block h-4 w-4 align-[-2px]" strokeWidth={2} />
                   </span>
                 )}
                 {!showOverlay && g.caption && (
-                  <span className="absolute inset-x-0 bottom-0 translate-y-full bg-linear-to-t from-black/60 to-transparent px-3 pb-3 pt-8 text-[12px] font-medium text-white transition-transform duration-200 group-hover:translate-y-0 group-focus-within:translate-y-0 max-sm:translate-y-0">
+                  <span className="absolute inset-x-0 bottom-0 translate-y-full bg-linear-to-t from-cocoa-3/70 to-transparent px-3 pb-3 pt-8 text-[12px] font-medium text-white transition-[opacity,transform] duration-200 group-hover:translate-y-0 group-focus-within:translate-y-0 max-sm:translate-y-0">
                     {g.caption}
                   </span>
                 )}

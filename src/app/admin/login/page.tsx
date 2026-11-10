@@ -28,23 +28,23 @@ export default function AdminLoginPage() {
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-berry">
               <ShieldCheck className="h-5.5 w-5.5 text-white" strokeWidth={1.8} />
             </span>
-            <span className="font-display text-xl font-bold text-cream-50">
+            <span className="font-display text-[22px] font-bold text-cream-50">
               Bakery Delight
             </span>
           </div>
           <div>
-            <p className="font-hand text-4xl font-semibold text-cocoa-cream">
+            <p className="font-hand text-[40px] font-semibold text-cocoa-cream">
               Good food, happier people
             </p>
-            <h2 className="mt-3 font-display text-4xl font-bold leading-tight text-cream-50">
+            <h2 className="mt-3 font-display text-[40px] font-bold leading-tight text-cream-50">
               The oven is warm —<br />
-              welcome back.
+              welcome back
             </h2>
-            <p className="mt-4 max-w-md text-[14px] leading-relaxed text-white/60">
+            <p className="mt-4 max-w-md text-[14px] leading-relaxed text-cocoa-muted">
               Sign in to manage treats, reviews, messages and everything sweet.
             </p>
           </div>
-          <p className="text-[12px] text-white/40">
+          <p className="text-[12px] text-cocoa-muted">
             © {new Date().getFullYear()} Bakery Delight · Admin Panel
           </p>
         </div>

@@ -45,12 +45,12 @@ test.describe("treat detail page", () => {
   }) => {
     await page.goto("/treats/truffle-tower");
 
-    const sizes = page.getByRole("radiogroup", { name: "Sizes" });
-    await expect(sizes.getByRole("radio", { name: /500 g/ })).toBeVisible();
-    await expect(sizes.getByRole("radio", { name: /1 kg/ })).toBeVisible();
+    const sizes = page.getByRole("group", { name: "Sizes" });
+    await expect(sizes.getByRole("button", { name: /500 g/ })).toBeVisible();
+    await expect(sizes.getByRole("button", { name: /1 kg/ })).toBeVisible();
 
     // Choosing a size pins the exact price and names it in the message.
-    await sizes.getByRole("radio", { name: /1 kg/ }).click();
+    await sizes.getByRole("button", { name: /1 kg/ }).click();
     await expect(
       page.locator("p").filter({ hasText: /^₹899$/ }),
     ).toBeVisible();

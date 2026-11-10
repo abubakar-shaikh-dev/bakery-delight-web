@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { IconHeart } from "./icons";
+import { IconArrowRight, IconHeart } from "./icons";
 
 export default function About() {
   return (
@@ -19,10 +19,10 @@ export default function About() {
           <use href="#branch" />
         </svg>
 
-        <div className="grid items-center gap-16 px-5 py-16 md:px-10 lg:grid-cols-2 lg:gap-20 lg:px-[8.5rem] lg:py-24">
+        <div className="grid items-center gap-16 px-5 py-16 sm:px-10 lg:grid-cols-2 lg:gap-20 lg:px-[8.5rem] lg:py-24">
           {/* Photo collage — the taped polaroids, the section's moment */}
           <div className="relative mx-auto w-full max-w-[460px] lg:mx-0">
-            <div className="-rotate-3 bg-white p-3 pb-12 shadow-[0_24px_50px_-12px_rgba(90,30,30,0.28)]">
+            <div className="-rotate-3 bg-white p-3 pb-12 shadow-[0_24px_50px_-12px_rgba(28,9,6,0.18)]">
               <div className="relative aspect-[680/760] w-full">
                 <Image
                   src="/images/about-main.jpg"
@@ -33,7 +33,7 @@ export default function About() {
                 />
               </div>
             </div>
-            <div className="absolute -bottom-8 -right-3 w-36 rotate-6 bg-white p-2 pb-7 shadow-[0_16px_35px_-10px_rgba(90,30,30,0.3)] md:-right-8 md:w-44">
+            <div className="absolute -bottom-8 -right-3 w-36 rotate-6 bg-white p-2 pb-7 shadow-[0_16px_35px_-10px_rgba(28,9,6,0.16)] md:-right-8 md:w-44">
               <div className="relative aspect-square w-full">
                 <Image
                   src="/images/about-small.jpg"
@@ -54,7 +54,7 @@ export default function About() {
 
           {/* Copy */}
           <div>
-            <h2 className="font-display text-4xl font-bold leading-[1.12] text-ink md:text-[44px]">
+            <h2 className="font-display text-[28px] font-bold leading-[1.12] text-ink md:text-[44px]">
               A Home Kitchen,
               <br />
               With <span className="text-berry">Big Dreams</span>{" "}
@@ -75,10 +75,7 @@ export default function About() {
               className="mt-10 inline-flex items-center gap-2 rounded-full bg-berry px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-berry-deep"
             >
               Our Story
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
+              <IconArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

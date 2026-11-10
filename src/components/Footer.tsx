@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   IconFacebook,
+  IconHeart,
   IconInstagram,
   IconMail,
   IconMapPin,
@@ -14,7 +15,7 @@ import type { SettingsData } from "@/lib/site-data";
 
 const quickLinks = [
   { label: "Home", href: "/" },
-  { label: "Our Treats", href: "/treats" },
+  { label: "Treats", href: "/treats" },
   { label: "Gallery", href: "/gallery" },
   { label: "About", href: "/about" },
   { label: "Reviews", href: "/reviews" },
@@ -39,7 +40,7 @@ export default function Footer({ settings }: { settings: SettingsData }) {
         <use href="#branch" />
       </svg>
 
-      <div className="px-5 pt-16 pb-8 md:px-10 lg:px-[8.5rem]">
+      <div className="px-5 pt-16 pb-8 sm:px-10 lg:px-[8.5rem]">
         <div className="grid gap-12 md:grid-cols-2 xl:grid-cols-[1.3fr_0.7fr_1fr_auto] xl:gap-16">
           {/* Brand */}
           <div>
@@ -55,9 +56,10 @@ export default function Footer({ settings }: { settings: SettingsData }) {
               {settings.tagline}
             </p>
             <p className="mt-6 max-w-[280px] text-[14px] leading-relaxed text-stone-600">
-              From our home to yours &mdash; thank you for being part of our sweet journey. &hearts;
+              From our home to yours &mdash; thank you for being part of our sweet journey.{" "}
+              <IconHeart className="inline-block h-4 w-4 align-[-2px]" />
             </p>
-            <div className="mt-6 flex items-center gap-5 text-berry-deep">
+            <div className="mt-6 flex items-center gap-3 text-berry-deep">
               {socials.map((s) => (
                 <a
                   key={s.label}
@@ -65,7 +67,7 @@ export default function Footer({ settings }: { settings: SettingsData }) {
                   target={s.href.startsWith("http") ? "_blank" : undefined}
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="transition-colors hover:text-berry"
+                  className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:text-berry-deep"
                 >
                   {s.icon}
                 </a>
@@ -79,7 +81,7 @@ export default function Footer({ settings }: { settings: SettingsData }) {
             <ul className="mt-5 space-y-3 text-[14px] text-stone-600">
               {quickLinks.map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="transition-colors hover:text-berry">
+                  <Link href={l.href} className="transition-colors hover:text-berry-deep">
                     {l.label}
                   </Link>
                 </li>
@@ -97,7 +99,7 @@ export default function Footer({ settings }: { settings: SettingsData }) {
                 </span>
                 <a
                   href={`mailto:${settings.email}`}
-                  className="transition-colors hover:text-berry"
+                  className="min-w-0 break-words transition-colors hover:text-berry-deep"
                 >
                   {settings.email}
                 </a>
@@ -108,7 +110,7 @@ export default function Footer({ settings }: { settings: SettingsData }) {
                 </span>
                 <a
                   href={`tel:${settings.phone.replace(/\s/g, "")}`}
-                  className="transition-colors hover:text-berry"
+                  className="min-w-0 break-words transition-colors hover:text-berry-deep"
                 >
                   {settings.phone}
                 </a>
@@ -117,19 +119,18 @@ export default function Footer({ settings }: { settings: SettingsData }) {
                 <span className="text-berry-deep">
                   <IconMapPin />
                 </span>
-                <span>{settings.address}</span>
+                <span className="min-w-0 break-words">{settings.address}</span>
               </li>
             </ul>
           </div>
 
-          {/* Handwritten */}
+          {/* Quiet brand note — plain type so no screen carries more than
+              two handwritten elements (the footer renders on every page) */}
           <div className="hidden select-none flex-col items-center justify-start pt-2 pr-6 xl:flex">
-            <p className="rotate-6 text-center font-hand text-[22px] font-semibold leading-[1.25] text-berry-ink">
-              Made with &hearts;
+            <p className="text-center text-[13px] leading-relaxed text-stone-500">
+              Made with love
               <br />
-              Love
-              <br />
-              In a Home Kitchen
+              in a home kitchen
             </p>
           </div>
         </div>

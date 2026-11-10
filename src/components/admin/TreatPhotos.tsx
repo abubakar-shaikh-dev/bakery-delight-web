@@ -45,7 +45,9 @@ export default function TreatPhotos({
 
   return (
     <div>
-      <p className="mb-1.5 block text-[13px] font-medium text-stone-600">Photos</p>
+      <label className="field-label" htmlFor="treat-photos-trigger">
+        Photos
+      </label>
 
       <input
         ref={inputRef}
@@ -73,19 +75,19 @@ export default function TreatPhotos({
               unoptimized={photo.url.startsWith("/api/images/")}
             />
             {i === 0 && (
-              <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-berry-deep backdrop-blur-sm">
+              <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-berry-deep">
                 Cover
               </span>
             )}
             {/* Hover-revealed controls stay visible on touch. */}
-            <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/45 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+            <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-cocoa-3/55 opacity-100 transition-[opacity,transform] sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
               {i > 0 && (
                 <button
                   type="button"
                   onClick={() => makeCover(i)}
                   aria-label={`Set photo ${i + 1} as cover`}
                   title="Set as cover"
-                  className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-stone-600 transition-colors hover:text-berry"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white/90 text-stone-600 transition-colors hover:text-berry-deep"
                 >
                   <ArrowLeftToLine className="h-4 w-4" strokeWidth={1.8} />
                 </button>
@@ -95,7 +97,7 @@ export default function TreatPhotos({
                 onClick={() => removeAt(i)}
                 aria-label={`Remove photo ${i + 1}`}
                 title="Remove"
-                className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-stone-600 transition-colors hover:bg-danger-soft hover:text-danger"
+                className="grid h-10 w-10 place-items-center rounded-full bg-white/90 text-stone-600 transition-colors hover:bg-danger-soft hover:text-danger"
               >
                 <X className="h-4 w-4" strokeWidth={2} />
               </button>
@@ -106,12 +108,13 @@ export default function TreatPhotos({
         {!full && (
           <button
             type="button"
+            id="treat-photos-trigger"
             onClick={() => inputRef.current?.click()}
             aria-label="Add photo"
             className={
               photos.length === 0
                 ? "flex w-full items-center rounded-xl border-2 border-dashed border-cream-400 bg-white/60 text-stone-400 transition-colors hover:border-berry/50 hover:bg-white"
-                : "grid h-24 w-24 place-items-center rounded-xl border-2 border-dashed border-cream-400 bg-white/60 text-stone-400 transition-colors hover:border-berry/50 hover:text-berry"
+                : "grid h-24 w-24 place-items-center rounded-xl border-2 border-dashed border-cream-400 bg-white/60 text-stone-400 transition-colors hover:border-berry/50 hover:text-berry-deep"
             }
           >
             {photos.length === 0 ? (

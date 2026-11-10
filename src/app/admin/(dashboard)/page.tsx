@@ -132,11 +132,11 @@ function DashboardContent({
     <div className="space-y-6">
       {/* status panel — the date names the context, no greeting */}
       <div className="rounded-2xl bg-cocoa p-6 text-white sm:p-8">
-        <p className="text-[13px] font-medium text-white/60">{dateStr}</p>
-        <h2 className="mt-1.5 font-display text-2xl font-bold sm:text-3xl">
+        <p className="text-[13px] font-medium text-cocoa-muted">{dateStr}</p>
+        <h2 className="mt-1.5 font-display text-2xl font-bold sm:text-[28px]">
           Today at the bakery
         </h2>
-        <p className="mt-1.5 text-[13px] text-white/65">
+        <p className="mt-1.5 text-[13px] text-cocoa-muted">
           {pendingReviews > 0
             ? `${pendingReviews} review${pendingReviews === 1 ? "" : "s"} waiting for approval and ${unreadMessages} unread message${unreadMessages === 1 ? "" : "s"}`
             : unreadMessages > 0
@@ -156,7 +156,7 @@ function DashboardContent({
             <div className="flex items-center justify-between">
               <p className="text-[13px] font-medium text-stone-500">{s.label}</p>
               <ArrowRight
-                className="h-4 w-4 text-stone-300 transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:text-berry"
+                className="h-4 w-4 text-stone-400 transition-[opacity,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-berry-deep"
                 strokeWidth={2}
               />
             </div>
@@ -181,7 +181,7 @@ function DashboardContent({
           <Link
             key={a.label}
             href={a.href}
-            className="flex items-center gap-3.5 rounded-2xl border-2 border-dashed border-cream-400 bg-white/50 px-5 py-4 text-[14px] font-medium text-stone-600 transition-colors hover:border-berry/50 hover:bg-white hover:text-berry"
+            className="flex items-center gap-3.5 rounded-2xl border-2 border-dashed border-cream-400 bg-white/50 px-5 py-4 text-[14px] font-medium text-stone-600 transition-colors hover:border-berry/50 hover:bg-white hover:text-berry-deep"
           >
             <span className="grid h-9 w-9 place-items-center rounded-full bg-berry-soft text-berry-deep">
               <a.icon className="h-4 w-4" strokeWidth={1.8} />
@@ -193,9 +193,9 @@ function DashboardContent({
 
       <div className="grid gap-6 xl:grid-cols-2">
         {/* recent messages */}
-        <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-cream-300">
+        <div className="admin-card">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-xl font-bold text-ink">
+            <h3 className="font-display text-2xl font-bold text-ink">
               Latest messages
             </h3>
             <Link
@@ -204,7 +204,7 @@ function DashboardContent({
             >
               All{' '}
                 <ArrowRight
-                  className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                  className="h-4 w-4 transition-[opacity,transform] duration-200 group-hover:translate-x-0.5"
                   strokeWidth={2}
                 />
             </Link>
@@ -225,7 +225,7 @@ function DashboardContent({
                 />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-semibold text-ink">
-                    {m.name} <span className="font-normal text-stone-400">· {m.email}</span>
+                    {m.name} <span className="font-normal text-stone-500">· {m.email}</span>
                   </p>
                   <p className="mt-0.5 line-clamp-1 text-[13px] text-stone-600">{m.message}</p>
                 </div>
@@ -233,6 +233,7 @@ function DashboardContent({
                   {new Date(m.createdAt).toLocaleDateString("en-IN", {
                     day: "numeric",
                     month: "short",
+                    year: "numeric",
                   })}
                 </span>
               </li>
@@ -241,9 +242,9 @@ function DashboardContent({
         </div>
 
         {/* recent reviews */}
-        <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-cream-300">
+        <div className="admin-card">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-xl font-bold text-ink">
+            <h3 className="font-display text-2xl font-bold text-ink">
               Latest reviews
             </h3>
             <Link
@@ -252,7 +253,7 @@ function DashboardContent({
             >
               All{' '}
                 <ArrowRight
-                  className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                  className="h-4 w-4 transition-[opacity,transform] duration-200 group-hover:translate-x-0.5"
                   strokeWidth={2}
                 />
             </Link>

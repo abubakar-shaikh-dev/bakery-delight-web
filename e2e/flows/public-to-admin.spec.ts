@@ -51,7 +51,7 @@ test.describe("public → admin → public", () => {
     // 1. Visitor submits a review.
     await page.goto("/reviews");
     await page.getByLabel("Your name").fill("Journey Reviewer");
-    await page.getByRole("radio", { name: "5 stars" }).click();
+    await page.getByRole("button", { name: "5 stars" }).click();
     await page
       .getByLabel("Your review")
       .fill("The whole journey worked perfectly — five stars!");

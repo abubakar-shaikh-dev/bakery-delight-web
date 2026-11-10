@@ -221,25 +221,30 @@ export default function ReviewsManager() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-1.5 rounded-full bg-white p-1 shadow-xs ring-1 ring-cream-300 sm:w-fit">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setFilter(t.key)}
-              aria-pressed={filter === t.key}
-              className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors ${
-                filter === t.key
-                  ? "bg-berry text-white"
-                  : "text-stone-500 hover:text-berry"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-[13px] tabular-nums text-stone-600">
+            {reviews.length} review{reviews.length === 1 ? "" : "s"}
+          </p>
+          <div className="flex gap-1.5 rounded-xl bg-white p-1 shadow-xs ring-1 ring-cream-300">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setFilter(t.key)}
+                aria-pressed={filter === t.key}
+                className={`rounded-lg px-4 py-1.5 text-[13px] font-medium transition-colors ${
+                  filter === t.key
+                    ? "bg-berry text-white"
+                    : "text-stone-500 hover:text-berry-deep"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
         <button
           onClick={() => openForm({ ...emptyForm })}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-berry px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-berry-deep"
+          className="btn-primary"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
           Add review
@@ -259,25 +264,29 @@ export default function ReviewsManager() {
           <span className="grid h-16 w-16 place-items-center rounded-full bg-berry-soft text-berry-deep">
             <Star className="h-7 w-7" strokeWidth={1.8} />
           </span>
-          <h3 className="mt-4 font-display text-xl font-bold text-ink">
+          <h3 className="mt-4 font-display text-2xl font-bold text-ink">
             No reviews here yet
           </h3>
-          <p className="mt-1 max-w-xs text-[13px] text-stone-500">
+          <p className="mt-2 max-w-xs text-[13px] text-stone-500">
             {filter === "pending"
               ? "Customer reviews land here first for approval."
               : "Reviews from the site and ones you add appear here."}
           </p>
+          <button onClick={() => openForm({ ...emptyForm })} className="btn-primary mt-5">
+            <Plus className="h-4 w-4" strokeWidth={2} />
+            Add review
+          </button>
         </div>
       ) : (
         <div className="space-y-3">
           {reviews.map((r) => (
             <article
               key={r._id}
-              className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-cream-300"
+              className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-cream-300 transition-shadow hover:shadow-md"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-berry-soft font-display text-[16px] font-bold text-berry-deep">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-berry-soft text-[15px] font-semibold text-berry-deep">
                     {r.name.charAt(0).toUpperCase()}
                   </span>
                   <div className="min-w-0">
@@ -287,8 +296,10 @@ export default function ReviewsManager() {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-3.5 w-3.5 ${
-                              i < r.rating ? "fill-gold text-gold" : "text-cream-400"
+                            className={`h-4 w-4 ${
+                              i < r.rating
+                                ? "fill-gold text-gold"
+                                : "fill-cream-400 text-cream-400"
                             }`}
                           />
                         ))}
@@ -298,7 +309,7 @@ export default function ReviewsManager() {
                           Live
                         </span>
                       ) : (
-                        <span className="rounded-full bg-gold-soft px-2 py-0.5 text-[11px] font-semibold text-gold-ink">
+                        <span className="rounded-full bg-cream-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
                           Pending
                         </span>
                       )}
@@ -352,14 +363,14 @@ export default function ReviewsManager() {
                       })
                     }
                     aria-label="Edit review"
-                    className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry hover:text-white hover:ring-berry"
+                    className="icon-btn hover:text-berry-deep hover:ring-berry/40"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.8} />
                   </button>
                   <button
                     onClick={() => setDeleting(r)}
                     aria-label="Delete review"
-                    className="grid h-10 w-10 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:bg-berry-deep hover:text-white hover:ring-berry-deep"
+                    className="icon-btn hover:bg-danger-soft hover:text-danger hover:ring-danger/30"
                   >
                     <Trash2 className="h-4 w-4" strokeWidth={1.8} />
                   </button>
@@ -377,12 +388,12 @@ export default function ReviewsManager() {
           if (!open) requestClose();
         }}
         onCloseRequest={requestClose}
-        title={form?._id ? "Edit review" : "Add review"}
+        title={form?._id ? "Edit review" : "New review"}
         dismissible={false}
       >
         {form && (
           <form onSubmit={save} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-[1fr_130px]">
+            <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
               <div>
                 <label className={labelCls} htmlFor="review-name">
                   Customer name *
@@ -410,7 +421,7 @@ export default function ReviewsManager() {
                   Rating
                 </span>
                 <div
-                  role="radiogroup"
+                  role="group"
                   aria-labelledby="review-rating-label"
                   className="flex h-[42px] items-center gap-1"
                 >
@@ -418,17 +429,16 @@ export default function ReviewsManager() {
                     <button
                       key={i}
                       type="button"
-                      role="radio"
-                      aria-checked={i === form.rating}
+                      aria-pressed={i === form.rating}
                       aria-label={`${i} star${i === 1 ? "" : "s"}`}
                       onClick={() => setForm({ ...form, rating: i })}
-                      className="grid h-8 w-8 place-items-center rounded-full"
+                      className="grid h-10 w-10 place-items-center rounded-full"
                     >
                       <Star
-                        className={`h-6 w-6 transition-colors ${
+                        className={`h-5 w-5 transition-colors ${
                           i <= form.rating
                             ? "fill-gold text-gold"
-                            : "text-cream-400"
+                            : "fill-cream-400 text-cream-400"
                         }`}
                       />
                     </button>
@@ -442,7 +452,7 @@ export default function ReviewsManager() {
                 <label className={labelCls} htmlFor="review-text">
                   Review text *
                 </label>
-                <span className="text-[11px] text-stone-400 tabular-nums">
+                <span className="text-[11px] tabular-nums text-stone-500">
                   {form.text.length}/600
                 </span>
               </div>
@@ -528,7 +538,7 @@ export default function ReviewsManager() {
                 className={`flex-1 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
                   form.approved
                     ? "border-success/40 bg-success-soft text-success"
-                    : "border-cream-300 bg-white text-stone-400"
+                    : "border-cream-300 bg-white text-stone-500"
                 }`}
               >
                 <span className="flex items-center justify-center gap-1.5">
@@ -543,7 +553,7 @@ export default function ReviewsManager() {
                 className={`flex-1 rounded-xl border py-2.5 text-[13px] font-medium transition-colors ${
                   form.featured
                     ? "border-gold-ink/40 bg-gold-soft text-gold-ink"
-                    : "border-cream-300 bg-white text-stone-400"
+                    : "border-cream-300 bg-white text-stone-500"
                 }`}
               >
                 <span className="flex items-center justify-center gap-1.5">
@@ -559,7 +569,7 @@ export default function ReviewsManager() {
               </button>
               <button type="submit" disabled={saving} className="btn-primary">
                 {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                {saving ? "Saving…" : "Save review"}
+                {saving ? "Saving…" : form._id ? "Save changes" : "Add review"}
               </button>
             </div>
           </form>

@@ -1,4 +1,4 @@
-import { IconCupcake, IconGift, IconHeart } from "./icons";
+import { IconArrowRight, IconCupcake, IconGift, IconHeart } from "./icons";
 
 const occasions = [
   { label: "Birthdays", icon: <IconGift className="h-[30px] w-[30px]" /> },
@@ -24,9 +24,9 @@ export default function CustomCakes() {
           <use href="#branch" />
         </svg>
 
-        <div className="grid items-center gap-12 px-5 py-14 md:px-10 lg:grid-cols-[1.15fr_1fr] lg:px-[8.5rem] lg:py-16">
+        <div className="grid items-center gap-12 px-5 py-14 sm:px-10 lg:grid-cols-[1.15fr_1fr] lg:px-[8.5rem] lg:py-16">
           <div>
-            <h2 className="font-display text-4xl font-bold leading-[1.15] text-cocoa-2 md:text-[40px]">
+            <h2 className="font-display text-[28px] font-bold leading-[1.15] text-cocoa-2 md:text-[40px]">
               Custom Cakes
               <br />
               for Your Special Moments
@@ -40,10 +40,7 @@ export default function CustomCakes() {
               className="mt-7 inline-flex items-center gap-2 rounded-full bg-berry px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-berry-deep"
             >
               Request a Custom Cake
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
+              <IconArrowRight className="h-4 w-4" />
             </a>
           </div>
 

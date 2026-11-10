@@ -33,7 +33,7 @@ export default function TreatGallery({
           />
         ) : (
           <div className="grid h-full place-items-center">
-            <span className="font-display text-8xl text-berry-deep/70">
+            <span className="font-display text-[56px] text-berry-deep/70">
               {name.charAt(0)}
             </span>
           </div>

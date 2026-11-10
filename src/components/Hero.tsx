@@ -7,7 +7,7 @@ import { IconArrowRight, IconHeart } from "./icons";
    the cake's zone on 20:9 screens, so the mockup's placement would collide. */
 function MobileNote() {
   return (
-    <div className="absolute bottom-5 right-4 z-20 rotate-[5deg] text-right font-hand text-[20px] font-semibold leading-[1.18] text-berry-ink select-none sm:hidden">
+    <div className="absolute bottom-5 right-4 z-20 rotate-[5deg] text-right font-hand text-[18px] font-semibold leading-[1.18] text-berry-ink select-none sm:hidden">
       <p className="pr-2">More</p>
       <p className="pr-1">than</p>
       <p className="pr-2">Cakes</p>
@@ -76,7 +76,7 @@ export default function Hero({
           from the (site) layout) */}
       <div className="relative z-20 px-5 pt-[132px] pb-28 sm:px-10 sm:pt-[112px] md:pt-[144px] lg:px-[8.5rem] lg:pt-[120px] lg:pb-0">
         <div className="max-w-xl">
-          <h1 className="font-display text-4xl font-bold leading-[1.08] text-ink sm:text-6xl lg:text-[64px]">
+          <h1 className="font-display text-[40px] font-bold leading-[1.08] text-ink sm:text-[56px] lg:text-[64px]">
             Happiness
             <br />
             Tastes Better
@@ -99,7 +99,7 @@ export default function Hero({
             </Link>
             <Link
               href="/treats"
-              className="flex items-center gap-2 rounded-full border-2 border-berry px-7 py-3.5 font-medium text-berry transition-colors hover:bg-berry/5 max-sm:bg-cream-100/80"
+              className="flex items-center gap-2 rounded-full border-2 border-berry px-7 py-3.5 font-medium text-berry-deep transition-colors hover:bg-berry/5 max-sm:bg-cream-100/80"
             >
               Explore Treats
             </Link>
@@ -130,7 +130,7 @@ export default function Hero({
       <MobileNote />
 
       {/* Handwritten note — larger screens */}
-      <div className="absolute right-8 top-[30%] z-20 hidden -rotate-6 text-right font-hand text-xl font-semibold leading-[1.15] text-berry-ink select-none [text-shadow:0_1px_10px_rgba(253,242,236,0.85)] sm:block sm:right-10 md:right-14 md:top-[16%] md:text-[28px] xl:right-24">
+      <div className="absolute right-8 top-[30%] z-20 hidden -rotate-6 text-right font-hand text-[22px] font-semibold leading-[1.15] text-berry-ink select-none [text-shadow:0_1px_10px_rgba(253,242,236,0.85)] sm:block sm:right-10 md:right-14 md:top-[16%] md:text-[28px] xl:right-24">
         <p className="pr-7">More than</p>
         <p className="pr-1">Cakes</p>
         <p className="pr-8">It&rsquo;s Love</p>

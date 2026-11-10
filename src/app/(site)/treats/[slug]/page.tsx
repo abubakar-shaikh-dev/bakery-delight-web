@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { IconChevronRight } from "@/components/icons";
+import { IconArrowRight, IconChevronRight } from "@/components/icons";
 import TreatCard from "@/components/site/TreatCard";
 import TreatDetail from "@/components/site/TreatDetail";
 import TreatReviews from "@/components/site/TreatReviews";
@@ -86,14 +86,14 @@ export default async function TreatPage({ params }: Props) {
         aria-label="Breadcrumb"
         className="flex items-center gap-2 px-5 pt-6 text-[12px] font-medium text-stone-500 sm:px-10 lg:px-[8.5rem]"
       >
-        <Link href="/" className="transition-colors hover:text-berry-deep">
+        <Link href="/" className="-my-2 inline-flex items-center py-2 transition-colors hover:text-berry-deep">
           Home
         </Link>
-        <IconChevronRight className="h-3 w-3 text-cream-400" />
-        <Link href="/treats" className="transition-colors hover:text-berry-deep">
+        <IconChevronRight className="h-4 w-4 text-cream-400" />
+        <Link href="/treats" className="-my-2 inline-flex items-center py-2 transition-colors hover:text-berry-deep">
           Treats
         </Link>
-        <IconChevronRight className="h-3 w-3 text-cream-400" />
+        <IconChevronRight className="h-4 w-4 text-cream-400" />
         <span className="text-berry-deep">{treat.name}</span>
       </nav>
 
@@ -110,10 +110,19 @@ export default async function TreatPage({ params }: Props) {
 
       {related.length > 0 && (
         <section className="px-5 pb-24 sm:px-10 lg:px-[8.5rem]">
-          <h2 className="font-display text-3xl font-bold leading-none text-ink md:text-4xl">
-            More from the oven
-            <span className="ml-5 -mt-2 inline-block h-px w-20 bg-cream-400 align-middle md:w-24"></span>
-          </h2>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="font-display text-[28px] font-bold leading-none text-ink md:text-[40px]">
+              More from the oven
+              <span className="ml-5 -mt-2 inline-block h-px w-20 bg-cream-400 align-middle md:w-24"></span>
+            </h2>
+            <Link
+              href="/treats"
+              className="group flex items-center gap-2 text-[15px] font-medium text-berry-deep"
+            >
+              All treats
+              <IconArrowRight className="transition-[opacity,transform] duration-200 group-hover:translate-x-1" />
+            </Link>
+          </div>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((t) => (
               <TreatCard

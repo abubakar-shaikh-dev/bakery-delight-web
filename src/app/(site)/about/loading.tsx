@@ -13,7 +13,7 @@ export default function LoadingAbout() {
 
       <main className="bg-cream-50">
         {/* story */}
-        <section className="px-5 pt-14 pb-8 sm:px-10 lg:px-[8.5rem]">
+        <section className="px-5 pb-8 sm:px-10 lg:px-[8.5rem]">
           <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
             <div className="relative mx-auto w-full max-w-[440px]">
               <div className="skeleton aspect-[680/760] w-full" />
@@ -52,6 +52,9 @@ export default function LoadingAbout() {
             ))}
           </div>
         </section>
+
+        {/* cocoa CTA band */}
+        <div className="mt-16 h-72 bg-cocoa" />
       </main>
     </>
   );

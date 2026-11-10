@@ -57,7 +57,7 @@ test.describe("admin treats manager", () => {
     await expect(drawer.getByRole("heading", { name: "New treat" })).toBeVisible();
 
     // Empty name blocks the save.
-    await drawer.getByRole("button", { name: "Add to menu" }).click();
+    await drawer.getByRole("button", { name: "Add treat" }).click();
     await expect(drawer.locator('p[role="alert"]')).toHaveText(
       "Give the treat a name.",
     );
@@ -67,7 +67,7 @@ test.describe("admin treats manager", () => {
     // browser blocks submission before the JS validation runs.
     await drawer.locator("#treat-name").fill("E2E Truffle");
     await drawer.locator("#treat-price").fill("-5");
-    await drawer.getByRole("button", { name: "Add to menu" }).click();
+    await drawer.getByRole("button", { name: "Add treat" }).click();
     const underflow = await drawer
       .locator("#treat-price")
       .evaluate((el) => (el as HTMLInputElement).validity.rangeUnderflow);
@@ -89,7 +89,7 @@ test.describe("admin treats manager", () => {
       .fill("Created by the e2e suite to verify the whole path.");
     await drawer.locator("#treat-weight").fill("900 g");
     await drawer.locator("#treat-serves").fill("6–8 people");
-    await drawer.getByRole("button", { name: "Add to menu" }).click();
+    await drawer.getByRole("button", { name: "Add treat" }).click();
 
     await expectToast(page, "Treat added to the menu.");
     await expect(
@@ -129,7 +129,7 @@ test.describe("admin treats manager", () => {
     ).toHaveAttribute("aria-pressed", "true");
 
     await drawer.locator("#treat-name").fill("E2E Headliner");
-    await drawer.getByRole("button", { name: "Add to menu" }).click();
+    await drawer.getByRole("button", { name: "Add treat" }).click();
     await expectToast(page, "Treat added to the menu.");
 
     // Homepage features it next to the seeded featured treat.
@@ -149,7 +149,7 @@ test.describe("admin treats manager", () => {
     await drawer.getByRole("button", { name: "Add size" }).click();
     await drawer.getByRole("textbox", { name: "Size 2 label" }).fill("Full");
     await drawer.getByRole("spinbutton", { name: "Size 2 price" }).fill("349");
-    await drawer.getByRole("button", { name: "Add to menu" }).click();
+    await drawer.getByRole("button", { name: "Add treat" }).click();
     await expectToast(page, "Treat added to the menu.");
 
     const doc = await (await collection("treats")).findOne({ name: "E2E Sized" });
@@ -160,9 +160,9 @@ test.describe("admin treats manager", () => {
 
     // The public page lists both sizes.
     await page.goto("/treats/e2e-sized");
-    const sizes = page.getByRole("radiogroup", { name: "Sizes" });
-    await expect(sizes.getByRole("radio", { name: /Half/ })).toBeVisible();
-    await expect(sizes.getByRole("radio", { name: /Full/ })).toBeVisible();
+    const sizes = page.getByRole("group", { name: "Sizes" });
+    await expect(sizes.getByRole("button", { name: /Half/ })).toBeVisible();
+    await expect(sizes.getByRole("button", { name: /Full/ })).toBeVisible();
   });
 
   test("a size without a price blocks the save", async ({ page }) => {
@@ -173,7 +173,7 @@ test.describe("admin treats manager", () => {
     await drawer.locator("#treat-name").fill("E2E Unpriced Size");
     await drawer.getByRole("button", { name: "Add size" }).click();
     await drawer.getByRole("textbox", { name: "Size 1 label" }).fill("Half");
-    await drawer.getByRole("button", { name: "Add to menu" }).click();
+    await drawer.getByRole("button", { name: "Add treat" }).click();
 
     await expect(drawer.locator('p[role="alert"]')).toHaveText(
       "Every size needs a price of 0 or more.",
@@ -207,7 +207,7 @@ test.describe("admin treats manager", () => {
 
     // Add a third photo through the shared crop flow.
     await drawer.locator('input[type="file"]').setInputFiles(await jpegFile());
-    const cropper = page.getByRole("dialog", { name: "Crop photo" });
+    const cropper = page.getByRole("dialog", { name: "Crop your photo" });
     await cropper.getByRole("button", { name: "Crop & upload" }).click();
     await expectToast(page, "Photo saved.");
 
@@ -253,9 +253,9 @@ test.describe("admin treats manager", () => {
 
     // Cancel keeps the row.
     await page.getByRole("button", { name: `Delete ${FIX.searchableTreat}` }).click();
-    const confirm = page.getByRole("dialog").filter({ hasText: "Remove" });
+    const confirm = page.getByRole("dialog").filter({ hasText: "Delete" });
     await expect(
-      confirm.getByRole("heading", { name: `Remove “${FIX.searchableTreat}”?` }),
+      confirm.getByRole("heading", { name: `Delete “${FIX.searchableTreat}”?` }),
     ).toBeVisible();
     await expect(
       confirm.getByText("It will disappear from the public menu immediately."),
@@ -272,10 +272,10 @@ test.describe("admin treats manager", () => {
     await page.getByRole("button", { name: `Delete ${FIX.searchableTreat}` }).click();
     await page
       .getByRole("dialog")
-      .filter({ hasText: `Remove “${FIX.searchableTreat}”?` })
-      .getByRole("button", { name: "Remove" })
+      .filter({ hasText: `Delete “${FIX.searchableTreat}”?` })
+      .getByRole("button", { name: "Delete" })
       .click();
-    await expectToast(page, `"${FIX.searchableTreat}" removed from the menu.`);
+    await expectToast(page, `“${FIX.searchableTreat}” deleted from the menu.`);
     await expect(page.getByRole("article")).toHaveCount(9);
     expect(
       await (await collection("treats")).countDocuments({ name: FIX.searchableTreat }),

@@ -80,7 +80,7 @@ function RatioGlyph({ value }: { value: string }) {
   const wide = w > h;
   const tall = h > w;
   return (
-    <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none" aria-hidden="true">
       <rect
         x={wide ? 1 : tall ? 3.5 : 2}
         y={wide ? 3.5 : tall ? 1 : 2}
@@ -238,23 +238,25 @@ export function CropUploadDialog({
           if (!working) onCancel();
         }}
         onPointerDown={(e) => e.stopPropagation()}
-        className="pointer-events-auto fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm"
+        className="pointer-events-auto fixed inset-0 z-[90] bg-cocoa-3/60"
       />
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Crop photo"
+        aria-labelledby="crop-dialog-title"
         onPointerDown={(e) => e.stopPropagation()}
-        className="pointer-events-auto fixed inset-x-0 bottom-0 z-[91] mx-auto w-full max-w-xl overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none animate-[sheet-in_240ms_ease-out] sm:mb-6 sm:rounded-2xl"
+        className="pointer-events-auto fixed inset-x-0 bottom-0 z-[91] mx-auto w-full max-w-xl overflow-hidden rounded-t-2xl bg-white shadow-lg outline-none animate-[sheet-in_240ms_ease-out] sm:mb-6 sm:rounded-2xl"
       >
         <div ref={panelRef} className="flex flex-col">
           <div className="flex items-center justify-between px-6 pt-5 pb-3 sm:px-8">
-            <p className="font-display text-2xl font-bold text-ink">Crop your photo</p>
+            <h2 id="crop-dialog-title" className="font-display text-2xl font-bold text-ink">
+              Crop your photo
+            </h2>
             <button
               ref={closeRef}
               onClick={onCancel}
               aria-label="Close cropper"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
             >
               <X className="h-5 w-5" strokeWidth={2} />
             </button>
@@ -262,7 +264,7 @@ export function CropUploadDialog({
 
           {ratios && (
             <div
-              role="radiogroup"
+              role="group"
               aria-label="Crop shape"
               className="flex flex-wrap gap-1.5 px-6 pb-4 sm:px-8"
             >
@@ -272,11 +274,10 @@ export function CropUploadDialog({
                   <button
                     key={r.value}
                     type="button"
-                    role="radio"
-                    aria-checked={active}
+                    aria-pressed={active}
                     disabled={working}
                     onClick={() => changeRatio(r.value)}
-                    className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[12px] font-medium transition-colors disabled:opacity-60 ${
+                    className={`inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-[12px] font-medium transition-colors disabled:opacity-60 ${
                       active
                         ? "border-berry/40 bg-berry-soft text-berry-deep"
                         : "border-cream-300 bg-white text-stone-500 hover:border-cream-400 hover:text-stone-700"
@@ -309,7 +310,7 @@ export function CropUploadDialog({
               onClick={() => stepZoom(-1)}
               aria-label="Zoom out"
               disabled={zoom <= 1 || working}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry disabled:opacity-40"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry-deep disabled:opacity-40"
             >
               <ZoomOut className="h-4 w-4" strokeWidth={1.8} />
             </button>
@@ -328,7 +329,7 @@ export function CropUploadDialog({
               onClick={() => stepZoom(1)}
               aria-label="Zoom in"
               disabled={zoom >= 3 || working}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry disabled:opacity-40"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-500 ring-1 ring-cream-300 transition-colors hover:text-berry-deep disabled:opacity-40"
             >
               <ZoomIn className="h-4 w-4" strokeWidth={1.8} />
             </button>
@@ -390,7 +391,9 @@ export default function ImageUploader({
 
   return (
     <div>
-      <p className="mb-1.5 block text-[13px] font-medium text-stone-600">{label}</p>
+      <label className="field-label" htmlFor="photo-upload-trigger">
+        {label}
+      </label>
 
       <input
         ref={inputRef}
@@ -419,9 +422,9 @@ export default function ImageUploader({
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-600 ring-1 ring-cream-400 transition-colors hover:text-berry hover:ring-berry/40"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-600 ring-1 ring-cream-400 transition-colors hover:text-berry-deep hover:ring-berry/40"
             >
-              <RefreshCcw className="h-3.5 w-3.5" strokeWidth={2} />
+              <RefreshCcw className="h-4 w-4" strokeWidth={2} />
               Replace
             </button>
             <button
@@ -430,9 +433,9 @@ export default function ImageUploader({
                 setUrl("");
                 onUploaded("");
               }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-400 ring-1 ring-cream-400 transition-colors hover:text-berry-deep hover:ring-berry-deep/40"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-stone-500 ring-1 ring-cream-400 transition-colors hover:text-berry-deep hover:ring-berry-deep/40"
             >
-              <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+              <Trash2 className="h-4 w-4" strokeWidth={2} />
               Remove
             </button>
           </div>
@@ -440,6 +443,7 @@ export default function ImageUploader({
       ) : (
         <button
           type="button"
+          id="photo-upload-trigger"
           onClick={() => inputRef.current?.click()}
           className="flex w-full items-center gap-4 rounded-xl border-2 border-dashed border-cream-400 bg-white/60 px-5 py-6 text-left transition-colors hover:border-berry/50 hover:bg-white"
         >

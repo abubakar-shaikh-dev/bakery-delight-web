@@ -51,14 +51,18 @@ export default function ContactForm({ whatsappDigits }: { whatsappDigits: string
         <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-stone-500">
           Thank you for reaching out — we&rsquo;ll get back to you within a day.
           Need something urgent?{" "}
-          <a
-            href={whatsappDigits ? `https://wa.me/${whatsappDigits}` : undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-wa underline decoration-wa/40 underline-offset-2"
-          >
-            Message us on WhatsApp
-          </a>
+          {whatsappDigits ? (
+            <a
+              href={`https://wa.me/${whatsappDigits}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-wa underline decoration-wa/40 underline-offset-2"
+            >
+              Message us on WhatsApp
+            </a>
+          ) : (
+            <span className="font-semibold text-stone-600">reply to our email</span>
+          )}
           .
         </p>
       </div>
@@ -81,7 +85,7 @@ export default function ContactForm({ whatsappDigits }: { whatsappDigits: string
       </p>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-berry-deep">
+        <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-[13px] font-medium text-danger">
           {error}
         </p>
       )}
@@ -118,7 +122,7 @@ export default function ContactForm({ whatsappDigits }: { whatsappDigits: string
 
       <div className="mt-4">
         <label htmlFor="ct-phone" className={labelCls}>
-          Phone / WhatsApp <span className="font-normal text-stone-400">(optional)</span>
+          Phone / WhatsApp <span className="font-normal text-stone-500">(optional)</span>
         </label>
         <input
           id="ct-phone"

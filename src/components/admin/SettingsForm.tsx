@@ -150,9 +150,9 @@ export default function SettingsForm() {
   return (
     <form onSubmit={save} className="space-y-6">
       {/* bakery identity */}
-      <section className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-cream-300">
-        <h3 className="flex items-center gap-2.5 font-display text-lg font-bold text-ink">
-          <CakeSlice className="h-5 w-5 text-berry" strokeWidth={1.8} />
+      <section className="admin-card">
+        <h3 className="flex items-center gap-2.5 text-[15px] font-semibold text-ink">
+          <CakeSlice className="h-5 w-5 text-stone-500" strokeWidth={1.8} />
           Bakery identity
         </h3>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -185,9 +185,9 @@ export default function SettingsForm() {
       </section>
 
       {/* contact */}
-      <section className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-cream-300">
-        <h3 className="flex items-center gap-2.5 font-display text-lg font-bold text-ink">
-          <Phone className="h-5 w-5 text-berry" strokeWidth={1.8} />
+      <section className="admin-card">
+        <h3 className="flex items-center gap-2.5 text-[15px] font-semibold text-ink">
+          <Phone className="h-5 w-5 text-stone-500" strokeWidth={1.8} />
           Contact details
         </h3>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -218,7 +218,7 @@ export default function SettingsForm() {
               inputMode="tel"
             />
             {settings.whatsappDigits && !settings.whatsappNumber && (
-              <p className="field-hint text-gold-ink">
+              <p className="field-hint">
                 Digits stay behind the scenes — add the display number so the
                 contact page can show it.
               </p>
@@ -226,7 +226,7 @@ export default function SettingsForm() {
           </div>
           <div>
             <label className={labelCls} htmlFor="set-wa-digits">
-              WhatsApp digits <span className="font-normal text-stone-400">(for wa.me links, e.g. 919876543210)</span>
+              WhatsApp digits <span className="font-normal text-stone-500">(for wa.me links, e.g. 919876543210)</span>
             </label>
             <input
               id="set-wa-digits"
@@ -250,7 +250,7 @@ export default function SettingsForm() {
               </p>
             )}
             {!settings.whatsappDigits && !waError && (
-              <p className="field-hint text-gold-ink">
+              <p className="field-hint">
                 Every Order on WhatsApp button on the site disappears while
                 this is empty.
               </p>
@@ -271,7 +271,7 @@ export default function SettingsForm() {
           </div>
           <div className="sm:col-span-2">
             <label className={labelCls} htmlFor="set-address">
-              <MapPin className="mr-1 inline h-3.5 w-3.5" strokeWidth={1.8} />
+              <MapPin className="mr-1 inline h-4 w-4" strokeWidth={1.8} />
               Address
             </label>
             <input
@@ -286,9 +286,9 @@ export default function SettingsForm() {
       </section>
 
       {/* socials */}
-      <section className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-cream-300">
-        <h3 className="flex items-center gap-2.5 font-display text-lg font-bold text-ink">
-          <Globe className="h-5 w-5 text-berry" strokeWidth={1.8} />
+      <section className="admin-card">
+        <h3 className="flex items-center gap-2.5 text-[15px] font-semibold text-ink">
+          <Globe className="h-5 w-5 text-stone-500" strokeWidth={1.8} />
           Social links
         </h3>
         <p className="mt-1 text-[13px] text-stone-500">
@@ -320,13 +320,15 @@ export default function SettingsForm() {
 
       <div className="flex items-center justify-end gap-3">
         {!dirty && (
-          <span className="text-[12px] text-stone-400">No changes yet</span>
+          <span id="set-unchanged-hint" className="text-[12px] text-stone-500">
+            No changes yet
+          </span>
         )}
         <button
           type="submit"
           disabled={saving || !dirty}
-          title={dirty ? undefined : "Change a field to enable saving"}
-          className="btn-primary px-7 py-3 text-[14px]"
+          aria-describedby={dirty ? undefined : "set-unchanged-hint"}
+          className="btn-primary"
         >
           {saving ? (
             <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -338,11 +340,11 @@ export default function SettingsForm() {
       </div>
 
       <p className="flex items-center gap-2 text-[12px] text-stone-500">
-        <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.8} />
+        <MessageCircle className="h-4 w-4" strokeWidth={1.8} />
         The WhatsApp digits power every “Order on WhatsApp” button across the site.
       </p>
       <p className="flex items-center gap-2 text-[12px] text-stone-500">
-        <AtSign className="h-3.5 w-3.5" strokeWidth={1.8} />
+        <AtSign className="h-4 w-4" strokeWidth={1.8} />
         Contact form submissions appear under Messages.
       </p>
     </form>

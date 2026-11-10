@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Star } from "lucide-react";
 import ReviewCard from "./ReviewCard";
+import { IconHeart } from "../icons";
 import { ReviewCardSkeleton } from "./Skeletons";
 import StarRating from "./StarRating";
 import type { ReviewData } from "@/lib/site-data";
@@ -59,8 +59,8 @@ export default function ReviewsBrowser({
       {/* summary */}
       <div className="mx-auto flex max-w-xl flex-col items-center rounded-2xl bg-white px-8 py-7 text-center shadow-xs ring-1 ring-cream-300 sm:flex-row sm:justify-center sm:gap-8">
         <div className="flex items-center gap-4">
-          <p className="font-display text-5xl font-bold leading-none text-ink tabular-nums">
-            {initial.avg || "—"}
+          <p className="font-display text-[44px] font-bold leading-none text-ink tabular-nums">
+            {initial.avg ? initial.avg.toFixed(1) : "—"}
           </p>
           <div className="text-left">
             {total > 0 && <StarRating rating={Math.round(initial.avg)} />}
@@ -94,7 +94,8 @@ export default function ReviewsBrowser({
 
       {reachedEnd && reviews.length > PAGE && (
         <p className="mt-12 flex items-center justify-center gap-2 text-center font-hand text-2xl text-berry-deep">
-          Every kind word, proudly displayed <Star className="h-4 w-4 fill-gold text-gold" />
+          Every kind word, proudly displayed{" "}
+          <IconHeart className="inline-block h-4 w-4 align-[-2px]" strokeWidth={2} />
         </p>
       )}
     </div>
